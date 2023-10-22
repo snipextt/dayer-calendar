@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cache"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -43,5 +45,7 @@ func main() {
 	callack.Get("/oauth/google", handler.GoogleAuthCallback)
 	callack.Post("/oauth/microsoft", handler.MsAuthCallback)
 
-	app.Listen(":3000")
+	port := os.Getenv("PORT")
+
+	app.Listen("0.0.0.0:" + port)
 }

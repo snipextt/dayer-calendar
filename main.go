@@ -28,7 +28,7 @@ func main() {
 	api.Post("/onboarding", handler.Onboarding)
 
 	// Get all calendar connections
-	api.Get("/calendar/connections/", handler.GetConnectedCalendars)
+	api.Get("/calendar/connections", handler.GetConnectedCalendars)
 
 	// Google calendar routes
 	api.Get("/calendar/auth/google", handler.GoogleAuthUrl)

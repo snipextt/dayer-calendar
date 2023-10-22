@@ -1,14 +1,12 @@
 package handler
 
 import (
-	"log"
+	"sync"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/snipextt/dayer/models/connections"
 	"github.com/snipextt/dayer/utils"
-	"golang.org/x/oauth2"
-	"google.golang.org/api/calendar/v3"
-	"google.golang.org/api/option"
+	"github.com/snipextt/dayer/utils/calendar"
 )
 
 func GetConnectedCalendars(c *fiber.Ctx) error {
@@ -26,25 +24,20 @@ func ListAllGoogleCalendarsForConnection(c *fiber.Ctx) error {
 	ctx, cancel := utils.GetContext()
 	defer cancel()
 
-	cid := c.Query("calendar_id")
+	cid := c.Query("connection_id")
 	uid := c.Locals("uid").(string)
 
 	conn, err := connections.FindById(cid)
-
 	if err != nil {
 		return HandleBadRequest(c, "Calendar not found")
 	}
-
 	if conn.Uid != uid {
 		return HandleBadRequest(c, "Calendar not found")
 	}
 
-	client := utils.GoogleOauthConfig.Client(ctx, &oauth2.Token{
-		RefreshToken: conn.Token,
-	})
-
+	srv, err := calendar.GoogleCalendarService(ctx, conn.Token)
 	utils.PanicOnError(err)
-	srv, err := calendar.NewService(ctx, option.WithHTTPClient(client))
+
 	calendars, err := srv.CalendarList.List().MinAccessRole("writer").Do()
 	utils.PanicOnError(err)
 
@@ -53,13 +46,41 @@ func ListAllGoogleCalendarsForConnection(c *fiber.Ctx) error {
 
 func SyncGoogleCalendars(c *fiber.Ctx) error {
 	defer HandleInternalServerError(c)
+	ctx, cancel := utils.GetContext()
+	defer cancel()
+
+	cid := c.Query("connection_id")
+	uid := c.Locals("uid").(string)
 
 	body := make([]map[string]interface{}, 0)
 	if err := c.BodyParser(&body); err != nil {
 		return HandleBadRequest(c, "Invalid body")
 	}
 
-	log.Println(body)
+	conn, err := connections.FindById(cid)
+	if err != nil {
+		return HandleBadRequest(c, "Calendar not found")
+	}
+	if conn.Uid != uid {
+		return HandleBadRequest(c, "Calendar not found")
+	}
 
-	return nil
+	calendars := make([]string, 0)
+	for _, v := range body {
+		if id, ok := v["id"].(string); ok {
+			calendars = append(calendars, id)
+		}
+	}
+
+	var wg sync.WaitGroup
+	srv, err := calendar.GoogleCalendarService(ctx, conn.Token)
+	utils.PanicOnError(err)
+
+	for _, v := range calendars {
+		wg.Add(1)
+		go calendar.AddCalendarConnection(v, srv, &wg)
+	}
+
+	wg.Wait()
+	return HandleSuccess(c, nil, nil)
 }

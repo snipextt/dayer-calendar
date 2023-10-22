@@ -24,7 +24,7 @@ func main() {
 
 	app.Use(cache.New(), cors.New())
 
-	api := app.Group("/api")
+	api := app.Group("/v1")
 	api.Use(middleware.AuthMiddleware)
 
 	api.Post("/onboarding", handler.Onboarding)

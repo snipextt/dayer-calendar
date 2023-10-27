@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cache"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
 	"github.com/snipextt/dayer/handler"
@@ -22,7 +21,7 @@ func main() {
 	storage.Init()
 	clerk_utils.SetClerk()
 
-	app.Use(cache.New(), cors.New())
+	app.Use(cors.New())
 
 	api := app.Group("/v1")
 	api.Use(middleware.AuthMiddleware)
@@ -39,6 +38,11 @@ func main() {
 
 	// Microsoft calendar routes
 	api.Get("/calendar/auth/microsoft", handler.MsAuthUrl)
+
+	api.Get("/extension/all", handler.GetExtensions)
+
+	api.Get("/workspace", handler.GetCurrentWorkspace)
+	api.Post("/workspace", handler.CreateWorkspace)
 
 	// Callback routes
 	callack := api.Group("/callback")

@@ -25,13 +25,9 @@ func ListAllGoogleCalendarsForConnection(c *fiber.Ctx) error {
 	defer cancel()
 
 	cid := c.Query("connection_id")
-	uid := c.Locals("uid").(string)
 
 	conn, err := connections.FindById(cid)
 	if err != nil {
-		return HandleBadRequest(c, "Calendar not found")
-	}
-	if conn.Uid != uid {
 		return HandleBadRequest(c, "Calendar not found")
 	}
 
@@ -50,7 +46,6 @@ func SyncGoogleCalendars(c *fiber.Ctx) error {
 	defer cancel()
 
 	cid := c.Query("connection_id")
-	uid := c.Locals("uid").(string)
 
 	body := make([]map[string]interface{}, 0)
 	if err := c.BodyParser(&body); err != nil {
@@ -59,9 +54,6 @@ func SyncGoogleCalendars(c *fiber.Ctx) error {
 
 	conn, err := connections.FindById(cid)
 	if err != nil {
-		return HandleBadRequest(c, "Calendar not found")
-	}
-	if conn.Uid != uid {
 		return HandleBadRequest(c, "Calendar not found")
 	}
 

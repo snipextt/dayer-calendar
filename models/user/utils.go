@@ -10,8 +10,9 @@ import (
 
 func New(cid string) (user Model) {
 	user = Model{
-		ClerkId: cid,
-		Active:  true,
+		ClerkId:    cid,
+		Active:     true,
+		Workspaces: []interface{}{},
 	}
 	return
 }

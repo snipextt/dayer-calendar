@@ -4,19 +4,13 @@ import (
 	"github.com/snipextt/dayer/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"reflect"
 )
 
-type ModifiedRecord struct {
-	Native string
-	Bson   string
-}
-
 type Model struct {
-	Id              primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	ClerkId         string             `json:"clerkId" bson:"clerkId"`
-	Active          bool               `json:"active" bson:"active"`
-	modifiedRecords []ModifiedRecord
+	Id         primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	ClerkId    string             `json:"clerkId" bson:"clerkId"`
+	Active     bool               `json:"active" bson:"active"`
+	Workspaces []interface{}      `json:"workspaces" bson:"workspaces"`
 }
 
 func (u *Model) FindById(uid string) error {
@@ -43,24 +37,19 @@ func (u *Model) FindByClerkId(clerkId string) error {
 	return nil
 }
 
-func (u *Model) Save() (err error) {
+func (u *Model) Save(update ...interface{}) (err error) {
 	if u.Id.IsZero() {
 		err = u.Create()
 	} else {
-		err = u.Update()
+		err = u.Update(update[0])
 	}
 	return
 }
 
-func (u *Model) Update() (err error) {
+func (u *Model) Update(update interface{}) (err error) {
 	ctx, cancel := utils.GetContext()
 	defer cancel()
-	user := reflect.ValueOf(u).Elem()
-	update := make(map[string]interface{})
-	for _, v := range u.modifiedRecords {
-		update[v.Bson] = user.FieldByName(v.Native).Interface()
-	}
-	_, err = collection().UpdateOne(ctx, bson.M{"_id": u.Id}, bson.M{"$set": update})
+	_, err = collection().UpdateByID(ctx, u.Id, bson.M{"$set": update})
 	return
 }
 

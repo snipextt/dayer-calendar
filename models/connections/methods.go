@@ -28,12 +28,12 @@ func FindById(id string) (conn Model, err error) {
 	return
 }
 
-func NewConnection(uid string, email string, provider string, token string) (connection Model) {
+func NewConnection(wid string, vid string, provider string, token string) (connection Model) {
 	connection = Model{
-		Uid:      uid,
-		Email:    email,
-		Provider: provider,
-		Token:    token,
+		WorkspaceId: wid,
+		VendorID:    vid,
+		Provider:    provider,
+		Token:       token,
 	}
 	return connection
 }

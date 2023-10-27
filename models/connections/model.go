@@ -7,11 +7,11 @@ import (
 )
 
 type Model struct {
-	Id       primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	Uid      string             `json:"-" bson:"uid"`
-	Email    string             `json:"email" bson:"email"`
-	Provider string             `json:"provider" bson:"provider"`
-	Token    string             `bson:"token" json:"-"`
+	Id          primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	WorkspaceId string             `json:"-" bson:"workspaceId"`
+	VendorID    string             `json:"email" bson:"email"`
+	Provider    string             `json:"provider" bson:"provider"`
+	Token       string             `bson:"token" json:"-"`
 }
 
 func collection() *mongo.Collection {

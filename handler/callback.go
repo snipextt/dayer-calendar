@@ -9,7 +9,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/snipextt/dayer/models"
-	"github.com/snipextt/dayer/models/connections"
+	"github.com/snipextt/dayer/models/connection"
 	"github.com/snipextt/dayer/utils"
 )
 
@@ -38,14 +38,14 @@ func GoogleAuthCallback(c *fiber.Ctx) error {
 	// }
 
 	tok, err := utils.GoogleOauthConfig.Exchange(ctx, c.Query("code"))
-	utils.PanicOnError(err)
+	utils.CheckError(err)
 
 	email, err := utils.GetConnectedGoogleEmail(tok.RefreshToken)
-	utils.PanicOnError(err)
+	utils.CheckError(err)
 
-	conn := connections.NewConnection(c.Locals("uid").(string), email, "google", tok.RefreshToken)
+	conn := connection.NewCalendarConnection(c.Locals("uid").(string), email, "google", tok.RefreshToken)
 	err = conn.Save()
-	utils.PanicOnError(err)
+	utils.CheckError(err)
 
 	return HandleSuccess(c, "Successfully connected to Google Calendar", conn.Id.Hex())
 }

@@ -1,4 +1,4 @@
-package connections
+package connection
 
 import (
 	"github.com/snipextt/dayer/utils"
@@ -28,12 +28,26 @@ func FindById(id string) (conn Model, err error) {
 	return
 }
 
-func NewConnection(wid string, vid string, provider string, token string) (connection Model) {
+func NewCalendarConnection(wid string, vid string, provider string, token string) (connection Model) {
+	oid, _ := primitive.ObjectIDFromHex(wid)
 	connection = Model{
-		WorkspaceId: wid,
+		WorkspaceId: oid,
 		VendorID:    vid,
 		Provider:    provider,
 		Token:       token,
+	}
+	return connection
+}
+
+func NewTimeDoctorConnection(wid string, vid string, token string, expiresAt string) (connection Model) {
+	oid, _ := primitive.ObjectIDFromHex(wid)
+	connection = Model{
+		Extension:   "timedoctor",
+		WorkspaceId: oid,
+		VendorID:    vid,
+		Token:       token,
+		ExpiresAt:   expiresAt,
+		Provider:    "timedoctor",
 	}
 	return connection
 }

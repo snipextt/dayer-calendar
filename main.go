@@ -41,8 +41,11 @@ func main() {
 
 	api.Get("/extension/all", handler.GetExtensions)
 
-	api.Get("/workspace", handler.GetCurrentWorkspace)
-	api.Post("/workspace", handler.CreateWorkspace)
+	workspace := api.Group("/workspace")
+
+	workspace.Get("/", handler.GetCurrentWorkspace)
+	workspace.Post("/", handler.CreateWorkspace)
+	workspace.Post("/timedoctor/connect", handler.ConnectTimeDoctor)
 
 	// Callback routes
 	callack := api.Group("/callback")

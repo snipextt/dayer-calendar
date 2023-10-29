@@ -16,7 +16,7 @@ func GoogleAuthUrl(c *fiber.Ctx) error {
 	cb := c.Query("cb")
 	uid := c.Locals("uid").(string)
 	state, err := utils.SetOAuthState(uid)
-	utils.PanicOnError(err)
+	utils.CheckError(err)
 
 	state = uid + ":" + state + ";" + cb
 	state = base64.StdEncoding.EncodeToString([]byte(state))

@@ -4,7 +4,7 @@ import (
 	"sync"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/snipextt/dayer/models/connections"
+	"github.com/snipextt/dayer/models/connection"
 	"github.com/snipextt/dayer/utils"
 	"github.com/snipextt/dayer/utils/calendar"
 )
@@ -13,8 +13,8 @@ func GetConnectedCalendars(c *fiber.Ctx) error {
 	defer HandleInternalServerError(c)
 
 	uid := c.Locals("uid").(string)
-	conn, err := connections.FindConnectionsForUid(uid)
-	utils.PanicOnError(err)
+	conn, err := connection.FindConnectionsForUid(uid)
+	utils.CheckError(err)
 
 	return HandleSuccess(c, nil, conn)
 }
@@ -26,16 +26,16 @@ func ListAllGoogleCalendarsForConnection(c *fiber.Ctx) error {
 
 	cid := c.Query("connection_id")
 
-	conn, err := connections.FindById(cid)
+	conn, err := connection.FindById(cid)
 	if err != nil {
 		return HandleBadRequest(c, "Calendar not found")
 	}
 
 	srv, err := calendar.GoogleCalendarService(ctx, conn.Token)
-	utils.PanicOnError(err)
+	utils.CheckError(err)
 
 	calendars, err := srv.CalendarList.List().MinAccessRole("writer").Do()
-	utils.PanicOnError(err)
+	utils.CheckError(err)
 
 	return HandleSuccess(c, nil, calendars.Items)
 }
@@ -52,7 +52,7 @@ func SyncGoogleCalendars(c *fiber.Ctx) error {
 		return HandleBadRequest(c, "Invalid body")
 	}
 
-	conn, err := connections.FindById(cid)
+	conn, err := connection.FindById(cid)
 	if err != nil {
 		return HandleBadRequest(c, "Calendar not found")
 	}
@@ -66,7 +66,7 @@ func SyncGoogleCalendars(c *fiber.Ctx) error {
 
 	var wg sync.WaitGroup
 	srv, err := calendar.GoogleCalendarService(ctx, conn.Token)
-	utils.PanicOnError(err)
+	utils.CheckError(err)
 
 	for _, v := range calendars {
 		wg.Add(1)

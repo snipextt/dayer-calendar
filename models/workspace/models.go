@@ -1,6 +1,9 @@
 package workspace
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"github.com/snipextt/dayer/models/connection"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 const (
 	WorkspaceOrg      = "workspaceOrg"
@@ -12,8 +15,8 @@ type Workspace struct {
 	Type        string             `json:"type" bson:"type"`
 	Name        string             `json:"name" bson:"name"`
 	ClerkOrgId  string             `json:"clerkOrgId" bson:"clerkOrgId"`
-	Extensions  []interface{}      `json:"extensions" bson:"extensions"`
-	Connections []string           `json:"connections" bson:"connections,omitempty"`
+	Extensions  []string           `json:"extensions" bson:"extensions"`
+	Connections []connection.Model `json:"connections"`
 }
 
 type WorkspaceMember struct {
@@ -78,7 +81,7 @@ const (
 )
 
 type WorkspaceResponse struct {
-	Workspace          Workspace `json:"workspaces"`
-	Connections        []string  `json:"connections"`
-	RoleBasedResources []string  `json:"roleBasedResources"`
+	Id                 primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	PendingConnections []string           `json:"pendingConnections"`
+	RoleBasedResources []string           `json:"roleBasedResources"`
 }

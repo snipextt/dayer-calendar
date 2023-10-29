@@ -1,15 +1,16 @@
 package workspace
 
 import (
+	"github.com/snipextt/dayer/models/connection"
 	"github.com/snipextt/dayer/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func New(name string, clerkOrgId string, extensions []interface{}) *Workspace {
+func New(name string, clerkOrgId string, wsType string, extensions []string) *Workspace {
 	return &Workspace{
 		Name:       name,
-		Type:       WorkspaceOrg,
+		Type:       wsType,
 		ClerkOrgId: clerkOrgId,
 		Extensions: extensions,
 	}
@@ -38,26 +39,6 @@ func FindWorkspaceAndExtensions(orgId string) (workspace Workspace, err error) {
 	ctx, cancel := utils.GetContext()
 	defer cancel()
 	match := bson.D{{Key: "$match", Value: bson.D{{Key: "clerkOrgId", Value: orgId}}}}
-	convertId := bson.D{{
-		Key: "$project", Value: bson.D{
-			{Key: "extensions", Value: bson.D{{
-				Key: "$map",
-				Value: bson.D{
-					{Key: "input", Value: "$extensions"},
-					{Key: "as", Value: "extension"},
-					{Key: "in", Value: bson.D{
-						{Key: "$toObjectId", Value: "$$extension"},
-					}},
-				}},
-			}},
-		},
-	}}
-	lookupextensions := bson.D{{Key: "$lookup", Value: bson.D{
-		{Key: "from", Value: "extensions"},
-		{Key: "localField", Value: "extensions"},
-		{Key: "foreignField", Value: "_id"},
-		{Key: "as", Value: "extensions"},
-	}}}
 	lookupconnections := bson.D{{Key: "$lookup", Value: bson.D{
 		{Key: "from", Value: "connections"},
 		{Key: "localField", Value: "_id"},
@@ -65,7 +46,7 @@ func FindWorkspaceAndExtensions(orgId string) (workspace Workspace, err error) {
 		{Key: "as", Value: "connections"},
 	}}}
 
-	res, err := workspace.collection().Aggregate(ctx, mongo.Pipeline{match, convertId, lookupextensions, lookupconnections})
+	res, err := workspace.collection().Aggregate(ctx, mongo.Pipeline{match, lookupconnections})
 	if err != nil {
 		return
 	}
@@ -111,4 +92,21 @@ func GetResourcesForRole(r string) []string {
 	default:
 		return []string{}
 	}
+}
+
+func GetPendingConnection(extensions []string, wsconnections []connection.Model) []string {
+	var pending []string
+	for _, e := range extensions {
+		var found bool
+		for _, c := range wsconnections {
+			if e == c.Provider {
+				found = true
+				break
+			}
+		}
+		if !found {
+			pending = append(pending, e)
+		}
+	}
+	return pending
 }

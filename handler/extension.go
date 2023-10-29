@@ -11,7 +11,7 @@ func GetExtensions(ctx *fiber.Ctx) error {
 
 	page, limit := GetPagination(ctx)
 	extensions, err := extension.PaginatedExtensions(page, limit)
-	utils.PanicOnError(err)
+	utils.CheckError(err)
 
 	return HandleSuccess(ctx, nil, extensions)
 }

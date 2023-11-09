@@ -16,15 +16,31 @@ type Workspace struct {
 	Name        string             `json:"name" bson:"name"`
 	ClerkOrgId  string             `json:"clerkOrgId" bson:"clerkOrgId"`
 	Extensions  []string           `json:"extensions" bson:"extensions"`
-	Connections []connection.Model `json:"connections"`
+	Connections []connection.Model `json:"connections" bson:"connections,omitempty"`
+}
+
+type WorkspaceMemberMeta struct {
+	Source       string `json:"source" bson:"source"`
+	TimeDoctorId string `json:"timeDoctorId" bson:"timeDoctorId"`
 }
 
 type WorkspaceMember struct {
+	Id          primitive.ObjectID  `json:"id" bson:"_id,omitempty"`
+	Name        string              `json:"name" bson:"name"`
+	Email       string              `json:"email" bson:"email"`
+	WorkspaceId string              `json:"workspaceId" bson:"workspaceId"`
+	TeamId      string              `json:"teamId" bson:"teamId"`
+	UserId      string              `json:"userId" bson:"userId"`
+	Roles       []string            `json:"roles" bson:"roles"`
+	Permissions []string            `json:"permissions" bson:"permissions"`
+	Meta        WorkspaceMemberMeta `json:"meta" bson:"meta"`
+}
+
+type WorkspaceTeam struct {
 	Id          primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	WorkspaceId string             `json:"workspaceId" bson:"workspaceId"`
-	UserId      string             `json:"userId" bson:"userId"`
-	Roles       []string           `json:"roles" bson:"roles"`
-	Permissions []string           `json:"permissions" bson:"permissions"`
+	WorkspaceId primitive.ObjectID `json:"workspaceId" bson:"workspaceId"`
+	Name        string             `json:"name" bson:"name"`
+	Description string             `json:"description" bson:"description"`
 }
 
 type Workspaces []Workspace
@@ -77,11 +93,19 @@ var PermissionsAdminOrg = []string{
 }
 
 const (
-	WorkspaceRoleAdmin string = "admin"
+	WorkspaceRoleAdmin  string = "admin"
+	WorkspaceRoleMember string = "member"
 )
+
+type WorkspaceEvent struct {
+	Name        string `json:"name"`
+	Type        string `json:"type"`
+	Description string `json:"description"`
+}
 
 type WorkspaceResponse struct {
 	Id                 primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	PendingConnections []string           `json:"pendingConnections"`
+	PendingConnections []WorkspaceEvent   `json:"pendingConnections"`
+	PebdingActions     []WorkspaceEvent   `json:"pendingActions"`
 	RoleBasedResources []string           `json:"roleBasedResources"`
 }

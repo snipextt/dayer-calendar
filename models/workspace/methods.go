@@ -21,7 +21,7 @@ func (w *Workspace) Save(update ...interface{}) (err error) {
 }
 
 func (w *Workspace) Update(update interface{}) (err error) {
-	ctx, cancel := utils.GetContext()
+	ctx, cancel := utils.NewContext()
 	defer cancel()
 	_, err = w.collection().UpdateByID(ctx, w.Id, update)
 
@@ -29,7 +29,7 @@ func (w *Workspace) Update(update interface{}) (err error) {
 }
 
 func (w *Workspace) Create() (err error) {
-	ctx, cancel := utils.GetContext()
+	ctx, cancel := utils.NewContext()
 	defer cancel()
 
 	res, err := w.collection().InsertOne(ctx, w)
@@ -56,7 +56,7 @@ func (w *WorkspaceMember) Save(update ...interface{}) (err error) {
 }
 
 func (w *WorkspaceMember) Update(update interface{}) (err error) {
-	ctx, cancel := utils.GetContext()
+	ctx, cancel := utils.NewContext()
 	defer cancel()
 	_, err = w.collection().UpdateByID(ctx, w.Id, update)
 
@@ -64,7 +64,7 @@ func (w *WorkspaceMember) Update(update interface{}) (err error) {
 }
 
 func (w *WorkspaceMember) Create() (err error) {
-	ctx, cancel := utils.GetContext()
+	ctx, cancel := utils.NewContext()
 	defer cancel()
 
 	res, err := w.collection().InsertOne(ctx, w)

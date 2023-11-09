@@ -13,7 +13,7 @@ func collection() *mongo.Collection {
 }
 
 func PaginatedExtensions(page int64, limit int64) (extensions Extensions, err error) {
-	ctx, cancel := utils.GetContext()
+	ctx, cancel := utils.NewContext()
 	defer cancel()
 	cursor, err := collection().Find(ctx, bson.M{}, options.Find().SetSkip((page-1)*limit).SetLimit(limit))
 	if err != nil {

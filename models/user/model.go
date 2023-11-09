@@ -14,7 +14,7 @@ type Model struct {
 }
 
 func (u *Model) FindById(uid string) error {
-	ctx, cancel := utils.GetContext()
+	ctx, cancel := utils.NewContext()
 	defer cancel()
 	id, err := primitive.ObjectIDFromHex(uid)
 	if err != nil {
@@ -28,7 +28,7 @@ func (u *Model) FindById(uid string) error {
 }
 
 func (u *Model) FindByClerkId(clerkId string) error {
-	ctx, cancel := utils.GetContext()
+	ctx, cancel := utils.NewContext()
 	defer cancel()
 	err := collection().FindOne(ctx, bson.M{"clerkId": clerkId}).Decode(u)
 	if err != nil {
@@ -47,14 +47,14 @@ func (u *Model) Save(update ...interface{}) (err error) {
 }
 
 func (u *Model) Update(update interface{}) (err error) {
-	ctx, cancel := utils.GetContext()
+	ctx, cancel := utils.NewContext()
 	defer cancel()
 	_, err = collection().UpdateByID(ctx, u.Id, bson.M{"$set": update})
 	return
 }
 
 func (u *Model) Create() error {
-	ctx, cancel := utils.GetContext()
+	ctx, cancel := utils.NewContext()
 	defer cancel()
 	r, err := collection().InsertOne(ctx, u)
 	if err != nil {

@@ -14,7 +14,7 @@ import (
 )
 
 func GoogleAuthCallback(c *fiber.Ctx) error {
-	ctx, cancel := utils.GetContext()
+	ctx, cancel := utils.NewContext()
 	defer cancel()
 	defer HandleInternalServerError(c)
 

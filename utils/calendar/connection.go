@@ -43,7 +43,7 @@ func (c *VendorCalendarConnection) Update() (err error) {
 }
 
 func (c *VendorCalendarConnection) Create() (err error) {
-	ctx, cancel := utils.GetContext()
+	ctx, cancel := utils.NewContext()
 	defer cancel()
 	res, err := c.collection().InsertOne(ctx, c)
 	c.Id = res.InsertedID.(primitive.ObjectID)

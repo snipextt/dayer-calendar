@@ -9,7 +9,7 @@ import (
 )
 
 func SetOAuthState(uid string) (s string, err error) {
-	ctx, cancel := GetContext()
+	ctx, cancel := NewContext()
 	defer cancel()
 	s = cmd.GetRandomString(32)
 	client := storage.GetRedisInstance()
@@ -21,7 +21,7 @@ func SetOAuthState(uid string) (s string, err error) {
 }
 
 func GetOAuthState(uid string) (s string, err error) {
-	ctx, cancel := GetContext()
+	ctx, cancel := NewContext()
 	defer cancel()
 	client := storage.GetRedisInstance()
 	s, err = client.Get(ctx, uid).Result()

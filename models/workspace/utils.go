@@ -1,11 +1,18 @@
 package workspace
 
 import (
+	"log"
+
 	"github.com/snipextt/dayer/models/connection"
+	"github.com/snipextt/dayer/storage"
 	"github.com/snipextt/dayer/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
+
+func collection() *mongo.Collection {
+	return storage.GetMongoInstance().Collection("workspaceMembers")
+}
 
 func New(name string, clerkOrgId string, wsType string, extensions []string) *Workspace {
 	return &Workspace{
@@ -16,17 +23,19 @@ func New(name string, clerkOrgId string, wsType string, extensions []string) *Wo
 	}
 }
 
-func NewWorkspaceMember(oid string, uid string, roles ...string) *WorkspaceMember {
+func NewWorkspaceMember(name, wid, email string, meta WorkspaceMemberMeta, roles ...string) *WorkspaceMember {
 	return &WorkspaceMember{
-		UserId:      uid,
-		WorkspaceId: oid,
+		Name:        name,
+		WorkspaceId: wid,
+		Email:       email,
 		Roles:       roles,
 		Permissions: []string{},
+		Meta:        meta,
 	}
 }
 
 func FindByClerkId(id string) (workspace Workspace, err error) {
-	ctx, cancel := utils.GetContext()
+	ctx, cancel := utils.NewContext()
 	defer cancel()
 	err = workspace.collection().FindOne(ctx, Workspace{ClerkOrgId: id}).Decode(&workspace)
 	if err == mongo.ErrNoDocuments {
@@ -36,7 +45,7 @@ func FindByClerkId(id string) (workspace Workspace, err error) {
 }
 
 func FindWorkspaceAndExtensions(orgId string) (workspace Workspace, err error) {
-	ctx, cancel := utils.GetContext()
+	ctx, cancel := utils.NewContext()
 	defer cancel()
 	match := bson.D{{Key: "$match", Value: bson.D{{Key: "clerkOrgId", Value: orgId}}}}
 	lookupconnections := bson.D{{Key: "$lookup", Value: bson.D{
@@ -61,10 +70,22 @@ func FindWorkspaceAndExtensions(orgId string) (workspace Workspace, err error) {
 }
 
 func FindWorkspaceMember(orgId string, uid string) (member WorkspaceMember, err error) {
-	ctx, cancel := utils.GetContext()
+	ctx, cancel := utils.NewContext()
 	defer cancel()
 	filter := bson.D{{Key: "workspaceId", Value: orgId}, {Key: "userId", Value: uid}}
 	err = member.collection().FindOne(ctx, filter).Decode(&member)
+	return
+}
+
+func FindWorkspaceMembers(wid string) (members []WorkspaceMember, err error) {
+	ctx, cancel := utils.NewContext()
+	defer cancel()
+	filter := bson.D{{Key: "workspaceId", Value: wid}}
+	cur, err := collection().Find(ctx, filter)
+	if err != nil {
+		return
+	}
+	err = cur.All(ctx, &members)
 	return
 }
 
@@ -94,18 +115,21 @@ func GetResourcesForRole(r string) []string {
 	}
 }
 
-func GetPendingConnection(extensions []string, wsconnections []connection.Model) []string {
-	var pending []string
+func GetPendingConnection(extensions []string, wsconnections []connection.Model) []WorkspaceEvent {
+	var pending []WorkspaceEvent
 	for _, e := range extensions {
 		var found bool
 		for _, c := range wsconnections {
 			if e == c.Provider {
+				if c.Provider == "timedoctor" && c.Meta.TimeDoctorCompanyID == "" {
+					continue
+				}
 				found = true
 				break
 			}
 		}
 		if !found {
-			pending = append(pending, e)
+			pending = append(pending, WorkspaceEvent{Type: "client", Name: e})
 		}
 	}
 	return pending

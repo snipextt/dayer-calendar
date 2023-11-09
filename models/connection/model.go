@@ -6,6 +6,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+type WorkspaceMeta struct {
+	TimeDoctorCompanyID string `bson:"company" json:"timeDoctorCompanyId"`
+}
+
 type Model struct {
 	Id          primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	Extension   string             `json:"extension" bson:"extension"`
@@ -14,6 +18,7 @@ type Model struct {
 	Provider    string             `json:"provider" bson:"provider"`
 	Token       string             `bson:"token" json:"-"`
 	ExpiresAt   string             `bson:"expiresAt" json:"-"`
+	Meta        WorkspaceMeta      `bson:"meta" json:"meta"`
 }
 
 func collection() *mongo.Collection {

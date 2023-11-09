@@ -21,7 +21,7 @@ func GetConnectedCalendars(c *fiber.Ctx) error {
 
 func ListAllGoogleCalendarsForConnection(c *fiber.Ctx) error {
 	defer HandleInternalServerError(c)
-	ctx, cancel := utils.GetContext()
+	ctx, cancel := utils.NewContext()
 	defer cancel()
 
 	cid := c.Query("connection_id")
@@ -42,7 +42,7 @@ func ListAllGoogleCalendarsForConnection(c *fiber.Ctx) error {
 
 func SyncGoogleCalendars(c *fiber.Ctx) error {
 	defer HandleInternalServerError(c)
-	ctx, cancel := utils.GetContext()
+	ctx, cancel := utils.NewContext()
 	defer cancel()
 
 	cid := c.Query("connection_id")

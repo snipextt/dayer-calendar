@@ -44,8 +44,11 @@ func main() {
 	workspace := api.Group("/workspace")
 
 	workspace.Get("/", handler.GetCurrentWorkspace)
+  workspace.Get("/members", handler.GetMembers)
 	workspace.Post("/", handler.CreateWorkspace)
 	workspace.Post("/timedoctor/connect", handler.ConnectTimeDoctor)
+	workspace.Post("/timedoctor/company", handler.ConnectTimeDoctorCompany)
+	workspace.Get("/timedoctor/data", handler.GetDataFromTimeDoctor)
 
 	// Callback routes
 	callack := api.Group("/callback")

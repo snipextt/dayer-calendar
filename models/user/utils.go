@@ -22,7 +22,7 @@ func collection() *mongo.Collection {
 }
 
 func FindById(id string) (user Model, err error) {
-	ctx, cancel := utils.GetContext()
+	ctx, cancel := utils.NewContext()
 	defer cancel()
 	oid, err := primitive.ObjectIDFromHex(id)
 	err = collection().FindOne(ctx, bson.M{"_id": oid}).Decode(&user)

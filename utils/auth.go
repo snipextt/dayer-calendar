@@ -7,7 +7,7 @@ import (
 )
 
 func GetConnectedGoogleEmail(token string) (email string, err error) {
-	ctx, cancel := GetContext()
+	ctx, cancel := NewContext()
 	defer cancel()
 
 	client := GoogleOauthConfig.Client(ctx, &oauth2.Token{

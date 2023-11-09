@@ -1,8 +1,6 @@
 package workspace
 
 import (
-	"log"
-
 	"github.com/snipextt/dayer/models/connection"
 	"github.com/snipextt/dayer/storage"
 	"github.com/snipextt/dayer/utils"

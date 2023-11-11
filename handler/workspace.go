@@ -9,6 +9,7 @@ import (
 	"github.com/snipextt/dayer/models/connection"
 	"github.com/snipextt/dayer/models/workspace"
 	"github.com/snipextt/dayer/utils"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func GetCurrentWorkspace(c *fiber.Ctx) error {
@@ -48,7 +49,7 @@ func CreateWorkspace(c *fiber.Ctx) error {
 	defer HandleInternalServerError(c)
 	oid, oname, uid := c.Locals("oid").(string), c.Locals("oname").(string), c.Locals("uid").(string)
 	userExtra := c.Locals("auth").(*clerk.TokenClaims).Extra
-	email, name := userExtra["email"].(string), userExtra["user"].(string)
+	email, name, image := userExtra["email"].(string), userExtra["user"].(string), userExtra["image"].(string)
 
 	var extensions []string
 	err := c.BodyParser(&extensions)
@@ -61,8 +62,8 @@ func CreateWorkspace(c *fiber.Ctx) error {
 		Source: "backend",
 	}
 
-	member := workspace.NewWorkspaceMember(name, w.Id.Hex(), email, meta, workspace.WorkspaceRoleAdmin)
-	member.UserId = uid
+	member := workspace.NewWorkspaceMember(name, w.Id, email, image, meta, workspace.WorkspaceRoleAdmin)
+	member.User = uid
 	err = member.Save()
 	utils.CheckError(err)
 
@@ -110,6 +111,9 @@ func ConnectTimeDoctorCompany(c *fiber.Ctx) (err error) {
 		return HandleBadRequest(c, "Workspace Id not set")
 	}
 
+  workspaceOid, err := primitive.ObjectIDFromHex(wid)
+	utils.CheckError(err)
+
 	conn, err := connection.FindByWorkspaceId(wid, "timedoctor")
 	utils.CheckError(err)
 
@@ -128,7 +132,7 @@ func ConnectTimeDoctorCompany(c *fiber.Ctx) (err error) {
 			Source:       "timedoctor",
 			TimeDoctorId: user.Id,
 		}
-		u := workspace.NewWorkspaceMember(user.Name, wid, user.Email, meta, workspace.WorkspaceRoleMember)
+		u := workspace.NewWorkspaceMember(user.Name, workspaceOid, user.Email, "", meta, workspace.WorkspaceRoleMember)
 		u.Save()
 	}
 
@@ -166,14 +170,23 @@ func GetDataFromTimeDoctor(c *fiber.Ctx) error {
 }
 
 func GetMembers(c *fiber.Ctx) error {
-  defer HandleInternalServerError(c)
-  wid, ok := c.GetReqHeaders()["X-Workspace-Id"]
+	defer HandleInternalServerError(c)
+	wid, ok := c.GetReqHeaders()["X-Workspace-Id"]
 	if !ok {
 		return HandleBadRequest(c, "Workspace Id not set")
 	}
 
-  members, err := workspace.FindWorkspaceMembers(wid)
-  utils.CheckError(err)
+	members, err := workspace.FindWorkspaceMembers(wid)
+	utils.CheckError(err)
 
-  return HandleSuccess(c, nil, members)
+	return HandleSuccess(c, nil, members)
+}
+
+func GetPeers(c *fiber.Ctx) error {
+  defer HandleInternalServerError(c)
+	wid, ok := c.GetReqHeaders()["X-Workspace-Id"]
+	if !ok {
+		return HandleBadRequest(c, "Workspace Id not set")
+	}
+  return nil
 }

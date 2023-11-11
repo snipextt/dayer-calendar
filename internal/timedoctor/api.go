@@ -122,7 +122,7 @@ func GenerateReportFromTimedoctor(token, company, user string) (data models.Time
 		Activities: activityData,
 		Images:     imageData,
 		Tasks:      tasks,
-    CreatedAt:  time.Now(),
+		CreatedAt:  time.Now(),
 	}
 
 	return

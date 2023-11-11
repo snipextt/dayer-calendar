@@ -28,9 +28,11 @@ type WorkspaceMember struct {
 	Id          primitive.ObjectID  `json:"id" bson:"_id,omitempty"`
 	Name        string              `json:"name" bson:"name"`
 	Email       string              `json:"email" bson:"email"`
-	WorkspaceId string              `json:"workspaceId" bson:"workspaceId"`
-	TeamId      string              `json:"teamId" bson:"teamId"`
-	UserId      string              `json:"userId" bson:"userId"`
+	Image       string              `json:"image" bson:"image"`
+	Workspace   any                 `json:"workspace" bson:"workspace"`
+	User        any                 `json:"user" bson:"user"`
+	Manager     any                 `json:"manager" bson:"manager"`
+	Teams       []any               `json:"teams" bson:"teams"`
 	Roles       []string            `json:"roles" bson:"roles"`
 	Permissions []string            `json:"permissions" bson:"permissions"`
 	Meta        WorkspaceMemberMeta `json:"meta" bson:"meta"`

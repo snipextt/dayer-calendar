@@ -5,6 +5,7 @@ import (
 	"github.com/snipextt/dayer/storage"
 	"github.com/snipextt/dayer/utils"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -21,10 +22,11 @@ func New(name string, clerkOrgId string, wsType string, extensions []string) *Wo
 	}
 }
 
-func NewWorkspaceMember(name, wid, email string, meta WorkspaceMemberMeta, roles ...string) *WorkspaceMember {
+func NewWorkspaceMember(name string, wid primitive.ObjectID, email, image string, meta WorkspaceMemberMeta, roles ...string) *WorkspaceMember {
 	return &WorkspaceMember{
 		Name:        name,
-		WorkspaceId: wid,
+		Image:       image,
+		Workspace:   wid,
 		Email:       email,
 		Roles:       roles,
 		Permissions: []string{},

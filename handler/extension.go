@@ -7,11 +7,11 @@ import (
 )
 
 func GetExtensions(ctx *fiber.Ctx) error {
-	defer HandleInternalServerError(ctx)
+	defer catchInternalServerError(ctx)
 
 	page, limit := GetPagination(ctx)
 	extensions, err := extension.PaginatedExtensions(page, limit)
 	utils.CheckError(err)
 
-	return HandleSuccess(ctx, nil, extensions)
+	return success(ctx, nil, extensions)
 }

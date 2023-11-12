@@ -10,7 +10,7 @@ import (
 )
 
 func Onboarding(c *fiber.Ctx) error {
-	HandleInternalServerError(c)
+	catchInternalServerError(c)
 
 	cuid := c.Locals("auth").(*clerk.TokenClaims).Claims.Subject
 	oid, oname := c.Locals("oid").(string), c.Locals("oname").(string)
@@ -18,7 +18,7 @@ func Onboarding(c *fiber.Ctx) error {
 	utils.CheckError(err)
 
 	if cu.ExternalID != nil {
-		return HandleBadRequest(c, "User already onboarded")
+		return badRequest(c, "User already onboarded")
 	}
 
 	u := user.New(cuid)

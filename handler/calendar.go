@@ -10,17 +10,17 @@ import (
 )
 
 func GetConnectedCalendars(c *fiber.Ctx) error {
-	defer HandleInternalServerError(c)
+	defer catchInternalServerError(c)
 
 	uid := c.Locals("uid").(string)
 	conn, err := connection.FindConnectionsForUid(uid)
 	utils.CheckError(err)
 
-	return HandleSuccess(c, nil, conn)
+	return success(c, nil, conn)
 }
 
 func ListAllGoogleCalendarsForConnection(c *fiber.Ctx) error {
-	defer HandleInternalServerError(c)
+	defer catchInternalServerError(c)
 	ctx, cancel := utils.NewContext()
 	defer cancel()
 
@@ -28,7 +28,7 @@ func ListAllGoogleCalendarsForConnection(c *fiber.Ctx) error {
 
 	conn, err := connection.FindById(cid)
 	if err != nil {
-		return HandleBadRequest(c, "Calendar not found")
+		return badRequest(c, "Calendar not found")
 	}
 
 	srv, err := calendar.GoogleCalendarService(ctx, conn.Token)
@@ -37,11 +37,11 @@ func ListAllGoogleCalendarsForConnection(c *fiber.Ctx) error {
 	calendars, err := srv.CalendarList.List().MinAccessRole("writer").Do()
 	utils.CheckError(err)
 
-	return HandleSuccess(c, nil, calendars.Items)
+	return success(c, nil, calendars.Items)
 }
 
 func SyncGoogleCalendars(c *fiber.Ctx) error {
-	defer HandleInternalServerError(c)
+	defer catchInternalServerError(c)
 	ctx, cancel := utils.NewContext()
 	defer cancel()
 
@@ -49,12 +49,12 @@ func SyncGoogleCalendars(c *fiber.Ctx) error {
 
 	body := make([]map[string]interface{}, 0)
 	if err := c.BodyParser(&body); err != nil {
-		return HandleBadRequest(c, "Invalid body")
+		return badRequest(c, "Invalid body")
 	}
 
 	conn, err := connection.FindById(cid)
 	if err != nil {
-		return HandleBadRequest(c, "Calendar not found")
+		return badRequest(c, "Calendar not found")
 	}
 
 	calendars := make([]string, 0)
@@ -74,5 +74,5 @@ func SyncGoogleCalendars(c *fiber.Ctx) error {
 	}
 
 	wg.Wait()
-	return HandleSuccess(c, nil, nil)
+	return success(c, nil, nil)
 }

@@ -16,7 +16,7 @@ import (
 func GoogleAuthCallback(c *fiber.Ctx) error {
 	ctx, cancel := utils.NewContext()
 	defer cancel()
-	defer HandleInternalServerError(c)
+	defer catchInternalServerError(c)
 
 	// state := c.Query("state")
 	// if state == "" {
@@ -47,7 +47,7 @@ func GoogleAuthCallback(c *fiber.Ctx) error {
 	err = conn.Save()
 	utils.CheckError(err)
 
-	return HandleSuccess(c, "Successfully connected to Google Calendar", conn.Id.Hex())
+	return success(c, "Successfully connected to Google Calendar", conn.Id.Hex())
 }
 
 func MsAuthCallback(c *fiber.Ctx) error {

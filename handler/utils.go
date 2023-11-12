@@ -6,9 +6,10 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/snipextt/dayer/models"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func HandleInternalServerError(c *fiber.Ctx) {
+func catchInternalServerError(c *fiber.Ctx) {
 	if err := recover(); err != nil {
 		log.Println(string(debug.Stack()), err)
 		c.Status(fiber.StatusInternalServerError).JSON(models.Response{
@@ -18,21 +19,21 @@ func HandleInternalServerError(c *fiber.Ctx) {
 	}
 }
 
-func HandleBadRequest(c *fiber.Ctx, message string) error {
+func badRequest(c *fiber.Ctx, message string) error {
 	return c.Status(fiber.StatusBadRequest).JSON(models.Response{
 		Error:   "Bad Request",
 		Message: message,
 	})
 }
 
-func HandleUnauthorized(c *fiber.Ctx, message string) error {
+func unauthorized(c *fiber.Ctx, message string) error {
 	return c.Status(fiber.StatusUnauthorized).JSON(models.Response{
 		Error:   "Bad Request",
 		Message: message,
 	})
 }
 
-func HandleSuccess(c *fiber.Ctx, msg interface{}, data interface{}) error {
+func success(c *fiber.Ctx, msg interface{}, data interface{}) error {
 	if msg == nil {
 		msg = ""
 	}
@@ -40,4 +41,17 @@ func HandleSuccess(c *fiber.Ctx, msg interface{}, data interface{}) error {
 		Message: msg.(string),
 		Data:    data,
 	})
+}
+
+func getWorkspaceId(c *fiber.Ctx) (id primitive.ObjectID, err error) {
+	wid, ok := c.GetReqHeaders()["X-Workspace-Id"]
+	if !ok {
+		err = noWorkspaceId
+		return
+	}
+	id, err = primitive.ObjectIDFromHex(wid)
+	if err != nil {
+		err = invdalidWorkSpaceId
+	}
+	return
 }

@@ -11,7 +11,7 @@ import (
 )
 
 func GoogleAuthUrl(c *fiber.Ctx) error {
-	defer HandleInternalServerError(c)
+	defer catchInternalServerError(c)
 
 	cb := c.Query("cb")
 	uid := c.Locals("uid").(string)
@@ -22,7 +22,7 @@ func GoogleAuthUrl(c *fiber.Ctx) error {
 	state = base64.StdEncoding.EncodeToString([]byte(state))
 	authURL := utils.GoogleOauthConfig.AuthCodeURL(state, oauth2.AccessTypeOffline)
 
-	return HandleSuccess(c, nil, fiber.Map{
+	return success(c, nil, fiber.Map{
 		"authURI": authURL,
 	})
 }

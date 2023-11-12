@@ -28,38 +28,35 @@ func FindById(id string) (conn Model, err error) {
 	return
 }
 
-func FindByWorkspaceId(id, provider string) (conn Model, err error) {
+func FindByWorkspaceId(id primitive.ObjectID, provider string) (conn Model, err error) {
 	ctx, cancel := utils.NewContext()
 	defer cancel()
-	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return
 	}
-
-	err = collection().FindOne(ctx, bson.M{"workspaceId": oid, "provider": provider}).Decode(&conn)
+	err = collection().FindOne(ctx, bson.M{"workspace": id, "provider": provider}).Decode(&conn)
 	return
 }
 
 func NewCalendarConnection(wid string, vid string, provider string, token string) (connection Model) {
 	oid, _ := primitive.ObjectIDFromHex(wid)
 	connection = Model{
-		WorkspaceId: oid,
-		VendorID:    vid,
-		Provider:    provider,
-		Token:       token,
+		Workspace: oid,
+		VendorID:  vid,
+		Provider:  provider,
+		Token:     token,
 	}
 	return connection
 }
 
-func NewTimeDoctorConnection(wid string, vid string, token string, expiresAt string) (connection Model) {
-	oid, _ := primitive.ObjectIDFromHex(wid)
+func NewTimeDoctorConnection(wid primitive.ObjectID, vid string, token string, expiresAt string) (connection Model) {
 	connection = Model{
-		Extension:   "timedoctor",
-		WorkspaceId: oid,
-		VendorID:    vid,
-		Token:       token,
-		ExpiresAt:   expiresAt,
-		Provider:    "timedoctor",
+		Extension: "timedoctor",
+		Workspace: wid,
+		VendorID:  vid,
+		Token:     token,
+		ExpiresAt: expiresAt,
+		Provider:  "timedoctor",
 	}
 	return connection
 }

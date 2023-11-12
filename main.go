@@ -46,8 +46,7 @@ func main() {
 	workspace.Get("/", handler.GetCurrentWorkspace)
 	workspace.Post("/", handler.CreateWorkspace)
 
-  workspace.Get("/peers", handler.GetPeers)
-	workspace.Get("/members", handler.GetMembers)
+	workspace.Get("/team/:id", handler.GetTeam)
 
 	workspace.Post("/timedoctor/connect", handler.ConnectTimeDoctor)
 	workspace.Post("/timedoctor/company", handler.ConnectTimeDoctorCompany)

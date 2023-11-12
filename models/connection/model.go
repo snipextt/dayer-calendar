@@ -11,14 +11,14 @@ type WorkspaceMeta struct {
 }
 
 type Model struct {
-	Id          primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	Extension   string             `json:"extension" bson:"extension"`
-	WorkspaceId primitive.ObjectID `json:"-" bson:"workspaceId"`
-	VendorID    string             `json:"email" bson:"email"`
-	Provider    string             `json:"provider" bson:"provider"`
-	Token       string             `bson:"token" json:"-"`
-	ExpiresAt   string             `bson:"expiresAt" json:"-"`
-	Meta        WorkspaceMeta      `bson:"meta" json:"meta"`
+	Id        primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	Extension string             `json:"extension" bson:"extension"`
+	Workspace any                `json:"-" bson:"workspace"`
+	VendorID  string             `json:"email" bson:"email"`
+	Provider  string             `json:"provider" bson:"provider"`
+	Token     string             `bson:"token" json:"-"`
+	ExpiresAt string             `bson:"expiresAt" json:"-"`
+	Meta      WorkspaceMeta      `bson:"meta" json:"meta"`
 }
 
 func collection() *mongo.Collection {

@@ -12,11 +12,11 @@ const (
 
 type Workspace struct {
 	Id          primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	DefaultTeam primitive.ObjectID `json:"defaultTeam" bson:"defaultTeam"`
 	Type        string             `json:"type" bson:"type"`
 	Name        string             `json:"name" bson:"name"`
 	ClerkOrgId  string             `json:"clerkOrgId" bson:"clerkOrgId"`
 	Extensions  []string           `json:"extensions" bson:"extensions"`
-	Connections []connection.Model `json:"connections" bson:"connections,omitempty"`
 }
 
 type WorkspaceMemberMeta struct {
@@ -32,7 +32,7 @@ type WorkspaceMember struct {
 	Workspace   any                 `json:"workspace" bson:"workspace"`
 	User        any                 `json:"user" bson:"user"`
 	Manager     any                 `json:"manager" bson:"manager"`
-	Teams       []any               `json:"teams" bson:"teams"`
+	Teams       any                 `json:"teams" bson:"teams"`
 	Roles       []string            `json:"roles" bson:"roles"`
 	Permissions []string            `json:"permissions" bson:"permissions"`
 	Meta        WorkspaceMemberMeta `json:"meta" bson:"meta"`
@@ -40,7 +40,7 @@ type WorkspaceMember struct {
 
 type WorkspaceTeam struct {
 	Id          primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	WorkspaceId primitive.ObjectID `json:"workspaceId" bson:"workspaceId"`
+	Workspace   any                `json:"workspace" bson:"workspace"`
 	Name        string             `json:"name" bson:"name"`
 	Description string             `json:"description" bson:"description"`
 }
@@ -75,10 +75,11 @@ const (
 	PlannerRead  string = "planner:read"
 
 	// Write resources
-	TeamsWrite    string = "teams:write"
-	CalendarWrite string = "calendar:write"
-	MemoWrite     string = "memo:write"
-	PlannerWrite  string = "planner:write"
+	TeamsWrite      string = "teams:write"
+	CalendarWrite   string = "calendar:write"
+	MemoWrite       string = "memo:write"
+	PlannerWrite    string = "planner:write"
+	ManageWorkspace string = "workspace:write"
 )
 
 var PermissionsAdminOrg = []string{
@@ -91,6 +92,7 @@ var PermissionsAdminOrg = []string{
 	MemoRead,
 	MemoWrite,
 	PlannerRead,
+	ManageWorkspace,
 	PlannerWrite,
 }
 
@@ -108,6 +110,13 @@ type WorkspaceEvent struct {
 type WorkspaceResponse struct {
 	Id                 primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	PendingConnections []WorkspaceEvent   `json:"pendingConnections"`
-	PebdingActions     []WorkspaceEvent   `json:"pendingActions"`
+	PendingActions     []WorkspaceEvent   `json:"pendingActions"`
+	Teams              []WorkspaceTeam    `json:"teams" bson:"teams"`
 	RoleBasedResources []string           `json:"roleBasedResources"`
+}
+
+type WorkspaceAggregation struct {
+	Workspace
+	Connections []connection.Model `json:"connections" bson:"connections,omitempty"`
+	Teams       []WorkspaceTeam    `json:"teams" bson:"teams,omitempty"`
 }

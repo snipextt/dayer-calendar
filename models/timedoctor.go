@@ -5,6 +5,7 @@ import (
 
 	"github.com/snipextt/dayer/storage"
 	"github.com/snipextt/dayer/utils"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -45,7 +46,7 @@ func (t *TimeDoctorReport) Save(update ...any) (err error) {
 	if t.Id.IsZero() {
 		err = t.Create()
 	} else {
-		err = t.Update(update...)
+		err = t.Update(update[0])
 	}
 	return
 }
@@ -60,9 +61,9 @@ func (t *TimeDoctorReport) Create() (err error) {
 	return
 }
 
-func (t *TimeDoctorReport) Update(update ...any) (err error) {
+func (t *TimeDoctorReport) Update(update any) (err error) {
 	ctx, cancel := utils.NewContext()
 	defer cancel()
-	_, err = t.Collection().UpdateByID(ctx, t.Id, update)
+	_, err = t.Collection().UpdateByID(ctx, t.Id, bson.M{"$set": update})
 	return
 }

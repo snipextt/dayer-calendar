@@ -45,6 +45,8 @@ func main() {
 
 	workspace := api.Group("/workspace")
 
+  workspace.Get("/insights", handler.Insights)
+
 	workspace.Get("/", handler.GetCurrentWorkspace)
 	workspace.Post("/", handler.CreateWorkspace)
 

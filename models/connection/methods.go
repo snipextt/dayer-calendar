@@ -17,7 +17,7 @@ func FindConnectionsForUid(uid string) (connections []Model, error error) {
 	return
 }
 
-func FindById(id string) (conn Model, err error) {
+func ById(id string) (conn Model, err error) {
 	ctx, cancel := utils.NewContext()
 	defer cancel()
 	oid, err := primitive.ObjectIDFromHex(id)
@@ -28,7 +28,21 @@ func FindById(id string) (conn Model, err error) {
 	return
 }
 
-func FindByWorkspaceId(id primitive.ObjectID, provider string) (conn Model, err error) {
+func ForWorkspace(id primitive.ObjectID) (conn []Model, err error) {
+  ctx, cancel := utils.NewContext()
+  defer cancel()
+  if err != nil {
+    return
+  }
+  cur, err := collection().Find(ctx, bson.M{"workspace": id})
+  if err != nil  {
+    return
+  }
+  err = cur.All(ctx, &conn)
+  return
+}
+
+func ForWorkspaceByProvider(id primitive.ObjectID, provider string) (conn Model, err error) {
 	ctx, cancel := utils.NewContext()
 	defer cancel()
 	if err != nil {

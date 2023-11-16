@@ -3,14 +3,16 @@ package handler
 import (
 	"encoding/json"
 	"sync"
+  "time"
 
 	"github.com/clerkinc/clerk-sdk-go/clerk"
 	"github.com/gofiber/fiber/v2"
 	"github.com/snipextt/dayer/internal/timedoctor"
 	"github.com/snipextt/dayer/models/connection"
+	timedoctor_utils "github.com/snipextt/dayer/models/timedoctor"
 	"github.com/snipextt/dayer/models/workspace"
 	"github.com/snipextt/dayer/utils"
-	clerk_utils "github.com/snipextt/dayer/utils/clerk"
+	clerk_internal "github.com/snipextt/dayer/utils/clerk"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -34,8 +36,8 @@ func GetCurrentWorkspace(c *fiber.Ctx) error {
 
 	var res workspace.WorkspaceResponse
 
-	res.RoleBasedResources = workspace.GetResourcesForUser(w.User.Roles, w.User.Permissions)
-	res.PendingConnections = workspace.GetPendingConnection(w.Extensions, w.Connections)
+	res.RoleBasedResources = workspace.ResourcesForUser(w.User.Roles, w.User.Permissions)
+	res.PendingConnections = workspace.PendingConnection(w.Extensions, w.Connections)
 	res.Teams = w.Teams
 	res.Id = w.Id
 
@@ -79,8 +81,8 @@ func CreateWorkspace(c *fiber.Ctx) error {
 
 	var res workspace.WorkspaceResponse
 
-	res.RoleBasedResources = workspace.GetResourcesForUser(member.Roles, member.Permissions)
-	res.PendingConnections = workspace.GetPendingConnection(ws.Extensions, []connection.Model{})
+	res.RoleBasedResources = workspace.ResourcesForUser(member.Roles, member.Permissions)
+	res.PendingConnections = workspace.PendingConnection(ws.Extensions, []connection.Model{})
 	res.Teams = []workspace.Team{*team}
 	res.Id = ws.Id
 
@@ -89,7 +91,7 @@ func CreateWorkspace(c *fiber.Ctx) error {
 	})
 	utils.CheckError(err)
 
-	clerk_utils.ClerkClient().Organizations().UpdateMetadata(oid, clerk.UpdateOrganizationMetadataParams{
+	clerk_internal.ClerkClient().Organizations().UpdateMetadata(oid, clerk.UpdateOrganizationMetadataParams{
 		PublicMetadata: metaUpdate,
 	})
 
@@ -130,7 +132,7 @@ func ConnectTimeDoctorCompany(c *fiber.Ctx) (err error) {
 		return badRequest(c, err.Error())
 	}
 
-	conn, err := connection.FindByWorkspaceId(wid, "timedoctor")
+	conn, err := connection.ForWorkspaceByProvider(wid, "timedoctor")
 	utils.CheckError(err)
 
 	ws, err := workspace.FindWorkspace(wid)
@@ -212,4 +214,28 @@ func CreateTeam(c *fiber.Ctx) error {
 	utils.CheckError(err)
 
 	return success(c, nil, team)
+}
+
+func Insights(c *fiber.Ctx) error {
+  defer catchInternalServerError(c)
+
+  wid, err := getWorkspaceId(c)
+  if err != nil {
+    return badRequest(c, err.Error())
+  }
+  startDate, err := time.Parse(time.RFC3339, c.Query("startDate"))
+  endDate, err := time.Parse(time.RFC3339, c.Query("endDate"))
+
+  connections, err := connection.ForWorkspace(wid)
+  utils.CheckError(err)
+
+  for _, conn := range connections {
+    if conn.Provider == "timedoctor" {
+      res, err := timedoctor_utils.ReportForWorkspace(conn.Workspace.(primitive.ObjectID), startDate, endDate)
+      utils.CheckError(err)
+      return success(c, nil, res)
+    }
+  }
+
+  return nil
 }

@@ -168,10 +168,10 @@ func GetMangedMembers(managerId string) (members []Member, err error) {
 	return
 }
 
-func GetResourcesForUser(roles []string, permissions []string) (resources []string) {
+func ResourcesForUser(roles []string, permissions []string) (resources []string) {
 	rolesmap := make(map[string]bool)
 	for _, r := range roles {
-		for _, p := range GetResourcesForRole(r) {
+		for _, p := range ResourcesForRole(r) {
 			rolesmap[p] = true
 		}
 	}
@@ -185,7 +185,7 @@ func GetResourcesForUser(roles []string, permissions []string) (resources []stri
 	return
 }
 
-func GetResourcesForRole(r string) []string {
+func ResourcesForRole(r string) []string {
 	switch r {
 	case WorkspaceRoleAdmin:
 		return PermissionsAdminOrg
@@ -194,7 +194,7 @@ func GetResourcesForRole(r string) []string {
 	}
 }
 
-func GetPendingConnection(extensions []string, wsconnections []connection.Model) []WorkspaceEvent {
+func PendingConnection(extensions []string, wsconnections []connection.Model) []WorkspaceEvent {
 	var pending []WorkspaceEvent
 	for _, e := range extensions {
 		var found bool

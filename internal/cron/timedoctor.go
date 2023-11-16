@@ -59,7 +59,7 @@ func generateTimedoctorReport(connection connection.Model, user workspace.Member
 	defer wg.Done()
 	defer catchError()
 
-	location, err := time.LoadLocation("Asia/Kolkata")
+	location, err := time.LoadLocation("Asia/Calcutta")
 	utils.CheckError(err)
 
 	date := time.Now().In(location).AddDate(0, 0, -1)
@@ -69,6 +69,7 @@ func generateTimedoctorReport(connection connection.Model, user workspace.Member
 
 	report.MemberId = user.Id
 	report.WorkspaceId = connection.Workspace.(primitive.ObjectID)
+  report.Teams = user.Teams.([]primitive.ObjectID)
 
 	pushToKafka(report)
 }

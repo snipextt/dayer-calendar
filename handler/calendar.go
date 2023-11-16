@@ -26,7 +26,7 @@ func ListAllGoogleCalendarsForConnection(c *fiber.Ctx) error {
 
 	cid := c.Query("connection_id")
 
-	conn, err := connection.FindById(cid)
+	conn, err := connection.ById(cid)
 	if err != nil {
 		return badRequest(c, "Calendar not found")
 	}
@@ -52,7 +52,7 @@ func SyncGoogleCalendars(c *fiber.Ctx) error {
 		return badRequest(c, "Invalid body")
 	}
 
-	conn, err := connection.FindById(cid)
+	conn, err := connection.ById(cid)
 	if err != nil {
 		return badRequest(c, "Calendar not found")
 	}

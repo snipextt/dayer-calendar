@@ -36,6 +36,7 @@ type TimeDoctorReportForAnalysis struct {
 	CreatedAt   time.Time             `json:"createdAt" bson:"createdAt"`
 	MemberId    primitive.ObjectID    `json:"memberId" bson:"memberId"`
 	WorkspaceId primitive.ObjectID    `json:"workspaceId" bson:"workspaceId"`
+  Teams       []primitive.ObjectID  `json:"teams" bson:"teams"`
 }
 
 func (t *TimeDoctorReportForAnalysis) ToBytes() ([]byte, error) {
@@ -47,13 +48,19 @@ type TimeDoctorReport struct {
 	ProductiveTime    float64            `json:"productiveTime" bson:"productiveTime"`
 	UnproductiveTime  float64            `json:"unproductiveTime" bson:"unproductiveTime"`
 	UncategorizedTime float64            `json:"uncategorizedTime" bson:"uncategorizedTime"`
+  Summary           string             `json:"summary" bson:"summary"`
 	ProductiveApps    []string           `json:"productiveApps" bson:"productiveApps"`
 	Images            []struct {
 		Date    string `json:"date" bson:"date"`
 		Summary string `json:"summary" bson:"summary"`
 	}
+  CreatedAt         time.Time          `json:"createdAt" bson:"createdAt"`
+  Member            primitive.ObjectID `json:"member" bson:"member"`
+  Workspace         primitive.ObjectID `json:"workspace" bson:"workspace"`
+  Teams             []primitive.ObjectID `json:"teams" bson:"teams"`
 }
 
 func (t *TimeDoctorReport) collection() *mongo.Collection {
 	return storage.Primary().Collection("timedoctorReports")
 }
+

@@ -140,10 +140,8 @@ func GetTimeuseData(token, company, user string, date time.Time) (data []TimeDoc
 		return
 	}
 
-	start := "2023-11-01T18:30:00Z"
-  // BeginningOfDay(date).UTC().Format(time.RFC3339)
-	end := "2023-11-14T18:29:59Z"
-  // EndOfDay(date).UTC().Format(time.RFC3339)
+	start := BeginningOfDay(date).UTC().Format(time.RFC3339)
+	end := EndOfDay(date).UTC().Format(time.RFC3339)
 
 	query := url.Query()
 	query.Add("company", company)

@@ -25,23 +25,23 @@ type MemberMeta struct {
 }
 
 type Member struct {
-	Id          primitive.ObjectID  `json:"id" bson:"_id,omitempty"`
-	Name        string              `json:"name" bson:"name"`
-	Email       string              `json:"email" bson:"email"`
-	Image       string              `json:"image" bson:"image"`
-	Workspace   any                 `json:"workspace" bson:"workspace"`
-	User        any                 `json:"user" bson:"user"`
-	Manager     any                 `json:"manager" bson:"manager"`
-	Teams       any                 `json:"teams" bson:"teams"`
-	Roles       []string            `json:"roles" bson:"roles"`
-	Permissions []string            `json:"permissions" bson:"permissions"`
-	Meta        MemberMeta `json:"meta" bson:"meta"`
+	Id          primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	Name        string             `json:"name" bson:"name"`
+	Email       string             `json:"email" bson:"email"`
+	Image       string             `json:"image" bson:"image"`
+	Workspace   any                `json:"workspace" bson:"workspace"`
+	User        any                `json:"user" bson:"user"`
+	Manager     any                `json:"manager" bson:"manager"`
+	Teams       any                `json:"teams" bson:"teams"`
+	Roles       []string           `json:"roles" bson:"roles"`
+	Permissions []string           `json:"permissions" bson:"permissions"`
+	Meta        MemberMeta         `json:"meta" bson:"meta"`
 }
 
 type Team struct {
 	Id          primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	Workspace   any                `json:"workspace" bson:"workspace"`
-  Owner       primitive.ObjectID `json:"owner" bson:"owner"`
+	Owner       primitive.ObjectID `json:"owner" bson:"owner"`
 	Name        string             `json:"name" bson:"name"`
 	Description string             `json:"description" bson:"description"`
 }
@@ -112,14 +112,14 @@ type WorkspaceResponse struct {
 	Id                 primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	PendingConnections []WorkspaceEvent   `json:"pendingConnections"`
 	PendingActions     []WorkspaceEvent   `json:"pendingActions"`
-	Teams              []Team    `json:"teams" bson:"teams"`
+	Teams              []Team             `json:"teams" bson:"teams"`
 	RoleBasedResources []string           `json:"roleBasedResources"`
 }
 
 type WorkspaceAggregation struct {
 	Id          primitive.ObjectID `json:"id" bson:"_id"`
-	User        Member    `json:"user" bson:"user"`
+	User        Member             `json:"user" bson:"user"`
 	Extensions  []string           `json:"extensions" bson:"extensions"`
 	Connections []connection.Model `json:"connections" bson:"connections"`
-	Teams       []Team    `json:"teams" bson:"teams"`
+	Teams       []Team             `json:"teams" bson:"teams"`
 }

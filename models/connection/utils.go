@@ -30,17 +30,17 @@ func NewTimeDoctorConnection(wid primitive.ObjectID, vid string, token string, e
 }
 
 func FindConnectionsByProvider(provider string) (connections []Model, err error) {
-  ctx, cancel := utils.NewContext()
-  defer cancel()
-  res, err := collection().Find(ctx, bson.M{"provider": provider})
-  if err != nil {
-    return
-  }
-  err = res.All(ctx, &connections)
-  return
+	ctx, cancel := utils.NewContext()
+	defer cancel()
+	res, err := collection().Find(ctx, bson.M{"provider": provider})
+	if err != nil {
+		return
+	}
+	err = res.All(ctx, &connections)
+	return
 }
 
 func GetTimedoctorConnections() (connections []Model, err error) {
-  connections, err = FindConnectionsByProvider("timedoctor")
-  return
+	connections, err = FindConnectionsByProvider("timedoctor")
+	return
 }

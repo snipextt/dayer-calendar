@@ -39,7 +39,7 @@ func NewTeam(name, description string, wid, owner primitive.ObjectID) *Team {
 	return &Team{
 		Name:        name,
 		Workspace:   wid,
-    Owner:       owner,
+		Owner:       owner,
 		Description: description,
 	}
 }
@@ -86,12 +86,12 @@ func GetWorkspaceAndConnections(id, uid primitive.ObjectID, personal bool) (work
 		{Key: "as", Value: "connections"},
 	}}}
 
-  var pipeline mongo.Pipeline
-  if personal {
-    pipeline = append(pipeline, match, lookupconnections)
-  } else {
-    pipeline = append(pipeline, match, lookupwsuser, unwinduser, lookupteams, lookupconnections)
-  }
+	var pipeline mongo.Pipeline
+	if personal {
+		pipeline = append(pipeline, match, lookupconnections)
+	} else {
+		pipeline = append(pipeline, match, lookupwsuser, unwinduser, lookupteams, lookupconnections)
+	}
 
 	res, err := storage.Primary().Collection("workspaces").Aggregate(ctx, pipeline)
 	if err != nil {
@@ -165,7 +165,7 @@ func GetMangedMembers(managerId string) (members []Member, err error) {
 		return
 	}
 	err = res.All(ctx, &members)
-  return 
+	return
 }
 
 func GetResourcesForUser(roles []string, permissions []string) (resources []string) {

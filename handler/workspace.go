@@ -22,7 +22,7 @@ func GetCurrentWorkspace(c *fiber.Ctx) error {
 	if err != nil {
 		return badRequest(c, err.Error())
 	}
-  isPersonal := c.Locals("personal").(bool)
+	isPersonal := c.Locals("personal").(bool)
 	uoid, err := primitive.ObjectIDFromHex(c.Locals("uid").(string))
 	utils.CheckError(err)
 	w, err := workspace.GetWorkspaceAndConnections(wid, uoid, isPersonal)
@@ -56,7 +56,7 @@ func CreateWorkspace(c *fiber.Ctx) error {
 	err = ws.Save()
 	utils.CheckError(err)
 
-  uoid, err := primitive.ObjectIDFromHex(uid)
+	uoid, err := primitive.ObjectIDFromHex(uid)
 
 	team := workspace.NewTeam("All members", "All members in the workspace", ws.Id, uoid)
 	err = team.Save()
@@ -71,7 +71,7 @@ func CreateWorkspace(c *fiber.Ctx) error {
 	}
 
 	member := workspace.NewMember(name, email, image, ws.Id, team.Id, meta, workspace.WorkspaceRoleAdmin)
-  member.User = uoid
+	member.User = uoid
 	utils.CheckError(err)
 
 	err = member.Save()
@@ -81,7 +81,7 @@ func CreateWorkspace(c *fiber.Ctx) error {
 
 	res.RoleBasedResources = workspace.GetResourcesForUser(member.Roles, member.Permissions)
 	res.PendingConnections = workspace.GetPendingConnection(ws.Extensions, []connection.Model{})
-  res.Teams = []workspace.Team{*team}
+	res.Teams = []workspace.Team{*team}
 	res.Id = ws.Id
 
 	metaUpdate, err := json.Marshal(map[string]any{
@@ -137,8 +137,8 @@ func ConnectTimeDoctorCompany(c *fiber.Ctx) (err error) {
 	utils.CheckError(err)
 
 	meta := connection.WorkspaceMeta{
-		TimeDoctorCompanyID: body["company"].(string),
-    TimeDoctorParseScreencast: body["parseScreencast"].(bool),
+		TimeDoctorCompanyID:       body["company"].(string),
+		TimeDoctorParseScreencast: body["parseScreencast"].(bool),
 	}
 
 	conn.Meta = meta
@@ -182,34 +182,34 @@ func GetTeam(c *fiber.Ctx) error {
 }
 
 func CreateTeam(c *fiber.Ctx) error {
-  defer catchInternalServerError(c)
-  wid, err := getWorkspaceId(c)
-  if err != nil {
-    return badRequest(c, err.Error())
-  }
-  body := make(map[string]string)
-  err = c.BodyParser(&body)
+	defer catchInternalServerError(c)
+	wid, err := getWorkspaceId(c)
+	if err != nil {
+		return badRequest(c, err.Error())
+	}
+	body := make(map[string]string)
+	err = c.BodyParser(&body)
 
-  uid, err := primitive.ObjectIDFromHex(c.Locals("uid").(string))
-  utils.CheckError(err)
+	uid, err := primitive.ObjectIDFromHex(c.Locals("uid").(string))
+	utils.CheckError(err)
 
-  if body["name"] == "" {
-    return badRequest(c, "Name is required")
-  }
+	if body["name"] == "" {
+		return badRequest(c, "Name is required")
+	}
 
-  if body["description"] == "" {
-    return badRequest(c, "Description is required")
-  }
+	if body["description"] == "" {
+		return badRequest(c, "Description is required")
+	}
 
-  team := workspace.NewTeam(body["name"], body["description"], wid, uid)
-  err = team.Save()
-  utils.CheckError(err)
+	team := workspace.NewTeam(body["name"], body["description"], wid, uid)
+	err = team.Save()
+	utils.CheckError(err)
 
-  member, err := workspace.FindWorkspaceMember(wid, uid)
-  utils.CheckError(err)
+	member, err := workspace.FindWorkspaceMember(wid, uid)
+	utils.CheckError(err)
 
-  err = member.Save(bson.M{"$push": bson.M{"teams": team.Id}})
-  utils.CheckError(err)
+	err = member.Save(bson.M{"$push": bson.M{"teams": team.Id}})
+	utils.CheckError(err)
 
-  return success(c, nil, team)
+	return success(c, nil, team)
 }

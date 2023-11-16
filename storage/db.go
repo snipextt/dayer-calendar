@@ -4,5 +4,5 @@ func Init() {
 	connectToRedis()
 	connectToMongoDb()
 	createIndexes()
-  connectToKafka()
+	connectToKafka()
 }

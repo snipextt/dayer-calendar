@@ -21,7 +21,7 @@ func main() {
 	utils.SetGoogleAuthConfig()
 	storage.Init()
 	clerk_utils.SetClerk()
-  cron.Init()
+	cron.Init()
 
 	app.Use(cors.New())
 
@@ -49,7 +49,7 @@ func main() {
 	workspace.Post("/", handler.CreateWorkspace)
 
 	workspace.Get("/team/:id", handler.GetTeam)
-  workspace.Post("/team", handler.CreateTeam)
+	workspace.Post("/team", handler.CreateTeam)
 
 	workspace.Post("/timedoctor/connect", handler.ConnectTimeDoctor)
 	workspace.Post("/timedoctor/company", handler.ConnectTimeDoctorCompany)

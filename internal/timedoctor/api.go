@@ -103,18 +103,18 @@ func GenerateReportFromTimedoctor(token, company, user string, processImages boo
 	var imageData []TimeDoctorImageData
 	var activityData []TimeDoctorActivity
 	var tasks []string
-  if processImages {
-    wg.Add(1)
-  }
+	if processImages {
+		wg.Add(1)
+	}
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
 		activityData, err = GetTimeuseData(token, company, user, date)
 	}()
 	go func() {
-    if !processImages {
-      return
-    }
+		if !processImages {
+			return
+		}
 		defer wg.Done()
 		imageData, err = GetActivityImageData(token, company, user, date)
 	}()
@@ -163,9 +163,9 @@ func GetTimeuseData(token, company, user string, date time.Time) (data []TimeDoc
 	activityData := &TimeDoctorResponse[[][]TimeDoctorActivity]{}
 	err = json.NewDecoder(res.Body).Decode(&activityData)
 
-  if len(activityData.Data) == 0 {
-    return
-  }
+	if len(activityData.Data) == 0 {
+		return
+	}
 	data = activityData.Data[0]
 
 	return
@@ -239,9 +239,9 @@ func GetActiveTasks(token, company, user string) (tasks []string, err error) {
 }
 
 func BeginningOfDay(date time.Time) time.Time {
-  return time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
+	return time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
 }
 
 func EndOfDay(date time.Time) time.Time {
-  return time.Date(date.Year(), date.Month(), date.Day(), 23, 59, 59, 0, date.Location())
+	return time.Date(date.Year(), date.Month(), date.Day(), 23, 59, 59, 0, date.Location())
 }

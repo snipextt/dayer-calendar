@@ -7,8 +7,8 @@ import (
 )
 
 type WorkspaceMeta struct {
-	TimeDoctorCompanyID string `bson:"timeDoctorCompanyId" json:"timeDoctorCompanyId"`
-  TimeDoctorParseScreencast bool `bson:"timeDoctorParseScreencast" json:"timeDoctorParseScreencasr"`
+	TimeDoctorCompanyID       string `bson:"timeDoctorCompanyId" json:"timeDoctorCompanyId"`
+	TimeDoctorParseScreencast bool   `bson:"timeDoctorParseScreencast" json:"timeDoctorParseScreencasr"`
 }
 
 type Model struct {

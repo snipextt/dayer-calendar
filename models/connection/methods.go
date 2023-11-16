@@ -37,4 +37,3 @@ func FindByWorkspaceId(id primitive.ObjectID, provider string) (conn Model, err 
 	err = collection().FindOne(ctx, bson.M{"workspace": id, "provider": provider}).Decode(&conn)
 	return
 }
-

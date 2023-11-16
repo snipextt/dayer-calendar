@@ -30,7 +30,7 @@ type RecurrenceRule struct {
 }
 
 func (e *Event) collection() *mongo.Collection {
-	return storage.GetMongoInstance().Collection("events")
+	return storage.Primary().Collection("events")
 }
 
 func (e *Event) Save() (err error) {

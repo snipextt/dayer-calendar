@@ -1,11 +1,10 @@
 package models
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/snipextt/dayer/storage"
-	"github.com/snipextt/dayer/utils"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -30,40 +29,31 @@ type TimeDoctorImageData struct {
 	} `json:"numbers"`
 }
 
-type TimeDoctorReport struct {
-	Id         primitive.ObjectID    `json:"_id" bson:"_id,omitempty"`
+type TimeDoctorReportForAnalysis struct {
 	Images     []TimeDoctorImageData `json:"images" bson:"images"`
 	Activities []TimeDoctorActivity  `json:"activities" bson:"activities"`
 	Tasks      []string              `json:"tasks" bson:"tasks"`
 	CreatedAt  time.Time             `json:"createdAt" bson:"createdAt"`
+  MemberId     primitive.ObjectID    `json:"memberId" bson:"memberId"`
+  WorkspaceId primitive.ObjectID    `json:"workspaceId" bson:"workspaceId"`
 }
 
-func (*TimeDoctorReport) Collection() *mongo.Collection {
-	return storage.GetMongoInstance().Collection("timedoctorReports")
+func (t *TimeDoctorReportForAnalysis) ToBytes() ([]byte, error) {
+  return json.Marshal(t)
 }
 
-func (t *TimeDoctorReport) Save(update ...any) (err error) {
-	if t.Id.IsZero() {
-		err = t.Create()
-	} else {
-		err = t.Update(update[0])
-	}
-	return
+type TimeDoctorReport struct {
+  Id primitive.ObjectID `json:"_id" bson:"_id"`
+  ProductiveTime float64 `json:"productiveTime" bson:"productiveTime"`
+  UnproductiveTime float64 `json:"unproductiveTime" bson:"unproductiveTime"`
+  UncategorizedTime float64 `json:"uncategorizedTime" bson:"uncategorizedTime"`
+  ProductiveApps []string `json:"productiveApps" bson:"productiveApps"`
+  Images []struct {
+    Date string `json:"date" bson:"date"`
+    Summary string `json:"summary" bson:"summary"`
+  }
 }
 
-func (t *TimeDoctorReport) Create() (err error) {
-	ctx, cancel := utils.NewContext()
-	defer cancel()
-	res, err := t.Collection().InsertOne(ctx, t)
-	if err != nil {
-		t.Id = res.InsertedID.(primitive.ObjectID)
-	}
-	return
-}
-
-func (t *TimeDoctorReport) Update(update any) (err error) {
-	ctx, cancel := utils.NewContext()
-	defer cancel()
-	_, err = t.Collection().UpdateByID(ctx, t.Id, bson.M{"$set": update})
-	return
+func (t *TimeDoctorReport) collection() *mongo.Collection {
+  return storage.Primary().Collection("timedoctorReports")
 }

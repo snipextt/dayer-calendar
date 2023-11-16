@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"sync"
 
 	"github.com/clerkinc/clerk-sdk-go/clerk"
@@ -9,6 +10,7 @@ import (
 	"github.com/snipextt/dayer/models/connection"
 	"github.com/snipextt/dayer/models/workspace"
 	"github.com/snipextt/dayer/utils"
+	clerk_utils "github.com/snipextt/dayer/utils/clerk"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -20,29 +22,19 @@ func GetCurrentWorkspace(c *fiber.Ctx) error {
 	if err != nil {
 		return badRequest(c, err.Error())
 	}
+  isPersonal := c.Locals("personal").(bool)
 	uoid, err := primitive.ObjectIDFromHex(c.Locals("uid").(string))
 	utils.CheckError(err)
-	personal := c.Locals("personal").(bool)
-	w, err := workspace.GetWorkspaceAndConnections(wid, uoid)
+	w, err := workspace.GetWorkspaceAndConnections(wid, uoid, isPersonal)
 	utils.CheckError(err)
 
 	if w.Id.IsZero() {
 		return success(c, nil, nil)
 	}
 
-	var u workspace.WorkspaceMember
-	if personal {
-		u = workspace.WorkspaceMember{
-			Roles: []string{workspace.WorkspaceRoleAdmin},
-		}
-	} else {
-		u, err = workspace.FindWorkspaceMember(w.Id.Hex(), uoid)
-		utils.CheckError(err)
-	}
-
 	var res workspace.WorkspaceResponse
 
-	res.RoleBasedResources = workspace.GetResourcesForUser(u.Roles, u.Permissions)
+	res.RoleBasedResources = workspace.GetResourcesForUser(w.User.Roles, w.User.Permissions)
 	res.PendingConnections = workspace.GetPendingConnection(w.Extensions, w.Connections)
 	res.Teams = w.Teams
 	res.Id = w.Id
@@ -64,7 +56,9 @@ func CreateWorkspace(c *fiber.Ctx) error {
 	err = ws.Save()
 	utils.CheckError(err)
 
-	team := workspace.NewTeam("All members", "All members in the workspace", ws.Id)
+  uoid, err := primitive.ObjectIDFromHex(uid)
+
+	team := workspace.NewTeam("All members", "All members in the workspace", ws.Id, uoid)
 	err = team.Save()
 	utils.CheckError(err)
 
@@ -72,12 +66,14 @@ func CreateWorkspace(c *fiber.Ctx) error {
 	err = ws.Save(bson.M{"defaultTeam": team.Id})
 	utils.CheckError(err)
 
-	meta := workspace.WorkspaceMemberMeta{
+	meta := workspace.MemberMeta{
 		Source: "backend",
 	}
 
 	member := workspace.NewMember(name, email, image, ws.Id, team.Id, meta, workspace.WorkspaceRoleAdmin)
-	member.User = uid
+  member.User = uoid
+	utils.CheckError(err)
+
 	err = member.Save()
 	utils.CheckError(err)
 
@@ -85,7 +81,17 @@ func CreateWorkspace(c *fiber.Ctx) error {
 
 	res.RoleBasedResources = workspace.GetResourcesForUser(member.Roles, member.Permissions)
 	res.PendingConnections = workspace.GetPendingConnection(ws.Extensions, []connection.Model{})
+  res.Teams = []workspace.Team{*team}
 	res.Id = ws.Id
+
+	metaUpdate, err := json.Marshal(map[string]any{
+		"workspaceId": ws.Id.Hex(),
+	})
+	utils.CheckError(err)
+
+	clerk_utils.ClerkClient().Organizations().UpdateMetadata(oid, clerk.UpdateOrganizationMetadataParams{
+		PublicMetadata: metaUpdate,
+	})
 
 	return success(c, nil, res)
 }
@@ -132,6 +138,7 @@ func ConnectTimeDoctorCompany(c *fiber.Ctx) (err error) {
 
 	meta := connection.WorkspaceMeta{
 		TimeDoctorCompanyID: body["company"].(string),
+    TimeDoctorParseScreencast: body["parseScreencast"].(bool),
 	}
 
 	conn.Meta = meta
@@ -144,72 +151,65 @@ func ConnectTimeDoctorCompany(c *fiber.Ctx) (err error) {
 
 	for _, user := range users.Data {
 		wg.Add(1)
-		go func() {
+		go func(user timedoctor.TimeDoctorUser) {
 			defer wg.Done()
-			meta := workspace.WorkspaceMemberMeta{
+			meta := workspace.MemberMeta{
 				Source:       "timedoctor",
 				TimeDoctorId: user.Id,
 			}
 			u := workspace.NewMember(user.Name, user.Email, "", wid, ws.DefaultTeam, meta, workspace.WorkspaceRoleMember)
 			u.Save()
-		}()
+		}(user)
 	}
 
 	return
-}
-
-func GetDataFromTimeDoctor(c *fiber.Ctx) error {
-	defer catchInternalServerError(c)
-
-	var workspaceId primitive.ObjectID
-	var err error
-
-	if wid, ok := c.GetReqHeaders()["X-Workspace-Id"]; !ok {
-		return badRequest(c, "Workspace Id not set")
-	} else {
-		workspaceId, err = primitive.ObjectIDFromHex(wid)
-		utils.CheckError(err)
-	}
-
-	conn, err := connection.FindByWorkspaceId(workspaceId, "timedoctor")
-	utils.CheckError(err)
-
-	users, err := workspace.FindWorkspaceMembers(workspaceId)
-	utils.CheckError(err)
-
-	var wg sync.WaitGroup
-	for _, user := range users {
-		if user.Meta.Source == "timedoctor" {
-			wg.Add(1)
-			go func(uid string) {
-				defer wg.Done()
-				report, err := timedoctor.GenerateReportFromTimedoctor(conn.Token, conn.Meta.TimeDoctorCompanyID, uid)
-				utils.CheckError(err)
-				report.Save()
-			}(user.Meta.TimeDoctorId)
-		}
-	}
-	wg.Wait()
-	return nil
-}
-
-func GetTeams(c *fiber.Ctx) error {
-	// defer
-	return nil
 }
 
 func GetTeam(c *fiber.Ctx) error {
 	defer catchInternalServerError(c)
 	wid, err := getWorkspaceId(c)
 	teamIdHex := c.Params("id")
-	teamOid, err := primitive.ObjectIDFromHex(teamIdHex)
+	tid, err := primitive.ObjectIDFromHex(teamIdHex)
 	utils.CheckError(err)
 	if err != nil {
 		return badRequest(c, err.Error())
 	}
 
-	members, err := workspace.FindTeamMembers(teamOid, wid)
+	members, err := workspace.FindTeamMembers(tid, wid)
 	utils.CheckError(err)
 
 	return success(c, nil, members)
+}
+
+func CreateTeam(c *fiber.Ctx) error {
+  defer catchInternalServerError(c)
+  wid, err := getWorkspaceId(c)
+  if err != nil {
+    return badRequest(c, err.Error())
+  }
+  body := make(map[string]string)
+  err = c.BodyParser(&body)
+
+  uid, err := primitive.ObjectIDFromHex(c.Locals("uid").(string))
+  utils.CheckError(err)
+
+  if body["name"] == "" {
+    return badRequest(c, "Name is required")
+  }
+
+  if body["description"] == "" {
+    return badRequest(c, "Description is required")
+  }
+
+  team := workspace.NewTeam(body["name"], body["description"], wid, uid)
+  err = team.Save()
+  utils.CheckError(err)
+
+  member, err := workspace.FindWorkspaceMember(wid, uid)
+  utils.CheckError(err)
+
+  err = member.Save(bson.M{"$push": bson.M{"teams": team.Id}})
+  utils.CheckError(err)
+
+  return success(c, nil, team)
 }

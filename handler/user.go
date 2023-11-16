@@ -26,13 +26,17 @@ func Onboarding(c *fiber.Ctx) error {
 	utils.CheckError(err)
 
 	id := u.Id.Hex()
-	clerk_utils.ClerkClient().Users().Update(cuid, &clerk.UpdateUser{
-		ExternalID: &id,
-	})
 
 	w := workspace.New(oname, oid, workspace.WorkSpacePersonal, []string{})
 	err = w.Save()
 	utils.CheckError(err)
+
+  _, err = clerk_utils.ClerkClient().Users().Update(cuid, &clerk.UpdateUser{
+    ExternalID: &id,
+    PublicMetadata: map[string]interface{}{
+    "workspaceId": w.Id.Hex(),
+  }})
+  utils.CheckError(err)
 
 	return c.Status(fiber.StatusOK).JSON(u)
 }

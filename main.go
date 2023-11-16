@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
 	"github.com/snipextt/dayer/handler"
+	"github.com/snipextt/dayer/internal/cron"
 	"github.com/snipextt/dayer/middleware"
 	"github.com/snipextt/dayer/storage"
 	"github.com/snipextt/dayer/utils"
@@ -20,6 +21,7 @@ func main() {
 	utils.SetGoogleAuthConfig()
 	storage.Init()
 	clerk_utils.SetClerk()
+  cron.Init()
 
 	app.Use(cors.New())
 
@@ -47,10 +49,10 @@ func main() {
 	workspace.Post("/", handler.CreateWorkspace)
 
 	workspace.Get("/team/:id", handler.GetTeam)
+  workspace.Post("/team", handler.CreateTeam)
 
 	workspace.Post("/timedoctor/connect", handler.ConnectTimeDoctor)
 	workspace.Post("/timedoctor/company", handler.ConnectTimeDoctorCompany)
-	// workspace.Get("/timedoctor/data", handler.GetDataFromTimeDoctor)
 
 	// Callback routes
 	callack := api.Group("/callback")

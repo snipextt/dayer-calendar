@@ -10,7 +10,7 @@ import (
 
 var db *mongo.Database
 
-func InitMongodbConnection() {
+func connectToMongoDb() {
 	uri := os.Getenv("MONGO_URI")
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	opts := options.Client().ApplyURI(uri).SetServerAPIOptions(serverAPI)
@@ -22,6 +22,6 @@ func InitMongodbConnection() {
 	db = client.Database("dayer")
 }
 
-func GetMongoInstance() *mongo.Database {
+func Primary() *mongo.Database {
 	return db
 }

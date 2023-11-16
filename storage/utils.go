@@ -8,7 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func CreateIndexes() {
+func createIndexes() {
 	db.Collection("users").Indexes().CreateOne(context.TODO(), mongo.IndexModel{
 		Keys:    bson.D{{Key: "clerkId", Value: 1}},
 		Options: options.Index().SetUnique(true),

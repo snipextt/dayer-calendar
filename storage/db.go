@@ -1,7 +1,8 @@
 package storage
 
 func Init() {
-	InitRedisConnection()
-	InitMongodbConnection()
-	CreateIndexes()
+	connectToRedis()
+	connectToMongoDb()
+	createIndexes()
+  connectToKafka()
 }

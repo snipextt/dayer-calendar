@@ -26,7 +26,7 @@ func NewGoogleCalendarConnection(id string) *VendorCalendarConnection {
 }
 
 func (c *VendorCalendarConnection) collection() *mongo.Collection {
-	return storage.GetMongoInstance().Collection("vendorCalendars")
+	return storage.Primary().Collection("vendorCalendars")
 }
 
 func (c *VendorCalendarConnection) Save() (err error) {

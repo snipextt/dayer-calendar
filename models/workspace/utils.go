@@ -10,7 +10,7 @@ import (
 )
 
 func collection() *mongo.Collection {
-	return storage.GetMongoInstance().Collection("workspaceMembers")
+	return storage.Primary().Collection("workspaceMembers")
 }
 
 func New(name string, clerkOrgId string, wsType string, extensions []string) *Workspace {
@@ -22,8 +22,8 @@ func New(name string, clerkOrgId string, wsType string, extensions []string) *Wo
 	}
 }
 
-func NewMember(name, email, image string, wid, team primitive.ObjectID, meta WorkspaceMemberMeta, roles ...string) *WorkspaceMember {
-	return &WorkspaceMember{
+func NewMember(name, email, image string, wid, team primitive.ObjectID, meta MemberMeta, roles ...string) *Member {
+	return &Member{
 		Name:        name,
 		Image:       image,
 		Workspace:   wid,
@@ -35,10 +35,11 @@ func NewMember(name, email, image string, wid, team primitive.ObjectID, meta Wor
 	}
 }
 
-func NewTeam(name, description string, wid primitive.ObjectID) *WorkspaceTeam {
-	return &WorkspaceTeam{
+func NewTeam(name, description string, wid, owner primitive.ObjectID) *Team {
+	return &Team{
 		Name:        name,
 		Workspace:   wid,
+    Owner:       owner,
 		Description: description,
 	}
 }
@@ -53,12 +54,12 @@ func FindByClerkId(id string) (workspace Workspace, err error) {
 	return
 }
 
-func GetWorkspaceAndConnections(id, uid primitive.ObjectID) (workspace WorkspaceAggregation, err error) {
+func GetWorkspaceAndConnections(id, uid primitive.ObjectID, personal bool) (workspace WorkspaceAggregation, err error) {
 	ctx, cancel := utils.NewContext()
 	defer cancel()
 	match := bson.D{{Key: "$match", Value: bson.D{{Key: "_id", Value: id}}}}
 	lookupwsuser := bson.D{{Key: "$lookup", Value: bson.M{
-		"from": "workspaceUsers",
+		"from": "workspaceMembers",
 		"pipeline": mongo.Pipeline{
 			bson.D{{Key: "$match", Value: bson.M{
 				"$expr": bson.M{
@@ -74,28 +75,25 @@ func GetWorkspaceAndConnections(id, uid primitive.ObjectID) (workspace Workspace
 	unwinduser := bson.D{{Key: "$unwind", Value: "$user"}}
 	lookupteams := bson.D{{Key: "$lookup", Value: bson.M{
 		"from":         "workspaceTeams",
-		"localField":   "$user.teams",
-		"foreignField": "teams",
+		"localField":   "user.teams",
+		"foreignField": "_id",
 		"as":           "teams",
 	}}}
-	unwindteams := bson.D{{Key: "$unwind", Value: "$teams"}}
 	lookupconnections := bson.D{{Key: "$lookup", Value: bson.D{
 		{Key: "from", Value: "connections"},
 		{Key: "localField", Value: "_id"},
-		{Key: "pipeline", Value: mongo.Pipeline{
-			bson.D{{Key: "$match", Value: bson.M{
-				"$expr": bson.M{
-					"$or": bson.A{
-						bson.M{"$in": bson.A{"admin", "$user.roles"}},
-						bson.M{"$in": bson.A{"workspace:write", "$user.permissions"}},
-					}},
-			}}},
-		}},
 		{Key: "foreignField", Value: "workspace"},
 		{Key: "as", Value: "connections"},
 	}}}
 
-	res, err := workspace.collection().Aggregate(ctx, mongo.Pipeline{match, lookupwsuser, unwinduser, lookupteams, unwindteams, lookupconnections})
+  var pipeline mongo.Pipeline
+  if personal {
+    pipeline = append(pipeline, match, lookupconnections)
+  } else {
+    pipeline = append(pipeline, match, lookupwsuser, unwinduser, lookupteams, lookupconnections)
+  }
+
+	res, err := storage.Primary().Collection("workspaces").Aggregate(ctx, pipeline)
 	if err != nil {
 		return
 	}
@@ -122,7 +120,7 @@ func FindWorkspace(id primitive.ObjectID) (workspace Workspace, err error) {
 	return
 }
 
-func FindWorkspaceMember(wid string, uid primitive.ObjectID) (member WorkspaceMember, err error) {
+func FindWorkspaceMember(wid, uid primitive.ObjectID) (member Member, err error) {
 	ctx, cancel := utils.NewContext()
 	defer cancel()
 	filter := bson.D{{Key: "workspace", Value: wid}, {Key: "user", Value: uid}}
@@ -130,7 +128,7 @@ func FindWorkspaceMember(wid string, uid primitive.ObjectID) (member WorkspaceMe
 	return
 }
 
-func FindWorkspaceMembers(wid primitive.ObjectID) (members []WorkspaceMember, err error) {
+func FindWorkspaceMembers(wid primitive.ObjectID) (members []Member, err error) {
 	ctx, cancel := utils.NewContext()
 	defer cancel()
 	filter := bson.D{{Key: "workspace", Value: wid}}
@@ -142,7 +140,7 @@ func FindWorkspaceMembers(wid primitive.ObjectID) (members []WorkspaceMember, er
 	return
 }
 
-func FindTeamMembers(team, ws primitive.ObjectID) (members []WorkspaceMember, err error) {
+func FindTeamMembers(team, ws primitive.ObjectID) (members []Member, err error) {
 	ctx, cancel := utils.NewContext()
 	defer cancel()
 
@@ -152,8 +150,22 @@ func FindTeamMembers(team, ws primitive.ObjectID) (members []WorkspaceMember, er
 	if err != nil {
 		return
 	}
-	err = res.All(ctx, members)
+	err = res.All(ctx, &members)
 	return
+}
+
+func GetMangedMembers(managerId string) (members []Member, err error) {
+	ctx, cancel := utils.NewContext()
+	defer cancel()
+
+	filter := bson.M{"manager": managerId}
+
+	res, err := collection().Find(ctx, filter)
+	if err != nil {
+		return
+	}
+	err = res.All(ctx, &members)
+  return 
 }
 
 func GetResourcesForUser(roles []string, permissions []string) (resources []string) {

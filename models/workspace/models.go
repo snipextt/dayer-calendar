@@ -19,12 +19,12 @@ type Workspace struct {
 	Extensions  []string           `json:"extensions" bson:"extensions"`
 }
 
-type WorkspaceMemberMeta struct {
+type MemberMeta struct {
 	Source       string `json:"source" bson:"source"`
 	TimeDoctorId string `json:"timeDoctorId" bson:"timeDoctorId"`
 }
 
-type WorkspaceMember struct {
+type Member struct {
 	Id          primitive.ObjectID  `json:"id" bson:"_id,omitempty"`
 	Name        string              `json:"name" bson:"name"`
 	Email       string              `json:"email" bson:"email"`
@@ -35,12 +35,13 @@ type WorkspaceMember struct {
 	Teams       any                 `json:"teams" bson:"teams"`
 	Roles       []string            `json:"roles" bson:"roles"`
 	Permissions []string            `json:"permissions" bson:"permissions"`
-	Meta        WorkspaceMemberMeta `json:"meta" bson:"meta"`
+	Meta        MemberMeta `json:"meta" bson:"meta"`
 }
 
-type WorkspaceTeam struct {
+type Team struct {
 	Id          primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	Workspace   any                `json:"workspace" bson:"workspace"`
+  Owner       primitive.ObjectID `json:"owner" bson:"owner"`
 	Name        string             `json:"name" bson:"name"`
 	Description string             `json:"description" bson:"description"`
 }
@@ -111,12 +112,14 @@ type WorkspaceResponse struct {
 	Id                 primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	PendingConnections []WorkspaceEvent   `json:"pendingConnections"`
 	PendingActions     []WorkspaceEvent   `json:"pendingActions"`
-	Teams              []WorkspaceTeam    `json:"teams" bson:"teams"`
+	Teams              []Team    `json:"teams" bson:"teams"`
 	RoleBasedResources []string           `json:"roleBasedResources"`
 }
 
 type WorkspaceAggregation struct {
-	Workspace
-	Connections []connection.Model `json:"connections" bson:"connections,omitempty"`
-	Teams       []WorkspaceTeam    `json:"teams" bson:"teams,omitempty"`
+	Id          primitive.ObjectID `json:"id" bson:"_id"`
+	User        Member    `json:"user" bson:"user"`
+	Extensions  []string           `json:"extensions" bson:"extensions"`
+	Connections []connection.Model `json:"connections" bson:"connections"`
+	Teams       []Team    `json:"teams" bson:"teams"`
 }

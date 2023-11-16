@@ -15,5 +15,5 @@ func NewCalendar(vendor string, id string, role string, connection string) *Vend
 }
 
 func collection() *mongo.Collection {
-	return storage.GetMongoInstance().Collection("vendorCalendar")
+	return storage.Primary().Collection("vendorCalendar")
 }

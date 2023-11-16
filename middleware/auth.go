@@ -29,16 +29,18 @@ func AuthMiddleware(c *fiber.Ctx) error {
 	c.Locals("auth", claims)
 	c.Locals("uid", claims.Extra["externalId"])
 	c.Locals("personal", false)
-	oid := claims.Extra["orgId"]
+  oid := claims.Extra["orgId"]
 	oname := claims.Extra["orgName"]
 
 	if oid == nil {
-		oid = claims.Extra["userId"]
+    oid = claims.Extra["userId"]
 		c.Locals("personal", true)
 	}
+
 	if oname == nil {
 		oname = claims.Extra["user"]
 	}
+
 	c.Locals("oid", oid)
 	c.Locals("oname", oname)
 	return c.Next()

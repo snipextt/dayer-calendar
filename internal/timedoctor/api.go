@@ -98,19 +98,25 @@ func GetCompanyUsers(token, companyId string) (response *TimeDoctorResponse[[]Ti
 	return
 }
 
-func GenerateReportFromTimedoctor(token, company, user string) (data models.TimeDoctorReport, err error) {
+func GenerateReportFromTimedoctor(token, company, user string, processImages bool, date time.Time) (data models.TimeDoctorReportForAnalysis, err error) {
 	var wg sync.WaitGroup
 	var imageData []TimeDoctorImageData
 	var activityData []TimeDoctorActivity
 	var tasks []string
-	wg.Add(3)
+  if processImages {
+    wg.Add(1)
+  }
+	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		activityData, err = GetTimeuseData(token, company, user)
+		activityData, err = GetTimeuseData(token, company, user, date)
 	}()
 	go func() {
+    if !processImages {
+      return
+    }
 		defer wg.Done()
-		imageData, err = GetActivityImageData(token, company, user)
+		imageData, err = GetActivityImageData(token, company, user, date)
 	}()
 	go func() {
 		defer wg.Done()
@@ -118,7 +124,7 @@ func GenerateReportFromTimedoctor(token, company, user string) (data models.Time
 	}()
 
 	wg.Wait()
-	data = models.TimeDoctorReport{
+	data = models.TimeDoctorReportForAnalysis{
 		Activities: activityData,
 		Images:     imageData,
 		Tasks:      tasks,
@@ -128,14 +134,16 @@ func GenerateReportFromTimedoctor(token, company, user string) (data models.Time
 	return
 }
 
-func GetTimeuseData(token, company, user string) (data []TimeDoctorActivity, err error) {
+func GetTimeuseData(token, company, user string, date time.Time) (data []TimeDoctorActivity, err error) {
 	url, err := url.Parse(baseurl1_0 + "/activity/timeuse")
 	if err != nil {
 		return
 	}
 
-	start := BeginningOfMonth(time.Now()).UTC().Format(time.RFC3339)
-	end := EndOfMonth(time.Now()).UTC().Format(time.RFC3339)
+	start := "2023-11-01T18:30:00Z"
+  // BeginningOfDay(date).UTC().Format(time.RFC3339)
+	end := "2023-11-14T18:29:59Z"
+  // EndOfDay(date).UTC().Format(time.RFC3339)
 
 	query := url.Query()
 	query.Add("company", company)
@@ -157,17 +165,20 @@ func GetTimeuseData(token, company, user string) (data []TimeDoctorActivity, err
 	activityData := &TimeDoctorResponse[[][]TimeDoctorActivity]{}
 	err = json.NewDecoder(res.Body).Decode(&activityData)
 
+  if len(activityData.Data) == 0 {
+    return
+  }
 	data = activityData.Data[0]
 
 	return
 }
 
-func GetActivityImageData(token, company, user string) (data []TimeDoctorImageData, err error) {
+func GetActivityImageData(token, company, user string, date time.Time) (data []TimeDoctorImageData, err error) {
 	url, err := url.Parse(baseurl1_0 + "/files")
 	utils.CheckError(err)
 
-	start := BeginningOfMonth(time.Now()).UTC().Format(time.RFC3339)
-	end := EndOfMonth(time.Now()).UTC().Format(time.RFC3339)
+	start := BeginningOfDay(date).UTC().Format(time.RFC3339)
+	end := EndOfDay(date).UTC().Format(time.RFC3339)
 
 	query := url.Query()
 	query.Add("company", company)
@@ -229,10 +240,10 @@ func GetActiveTasks(token, company, user string) (tasks []string, err error) {
 	return
 }
 
-func BeginningOfMonth(date time.Time) time.Time {
-	return date.AddDate(0, 0, -date.Day()+1)
+func BeginningOfDay(date time.Time) time.Time {
+  return time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
 }
 
-func EndOfMonth(date time.Time) time.Time {
-	return date.AddDate(0, 1, -date.Day())
+func EndOfDay(date time.Time) time.Time {
+  return time.Date(date.Year(), date.Month(), date.Day(), 23, 59, 59, 0, date.Location())
 }

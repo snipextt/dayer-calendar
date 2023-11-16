@@ -38,25 +38,3 @@ func FindByWorkspaceId(id primitive.ObjectID, provider string) (conn Model, err 
 	return
 }
 
-func NewCalendarConnection(wid string, vid string, provider string, token string) (connection Model) {
-	oid, _ := primitive.ObjectIDFromHex(wid)
-	connection = Model{
-		Workspace: oid,
-		VendorID:  vid,
-		Provider:  provider,
-		Token:     token,
-	}
-	return connection
-}
-
-func NewTimeDoctorConnection(wid primitive.ObjectID, vid string, token string, expiresAt string) (connection Model) {
-	connection = Model{
-		Extension: "timedoctor",
-		Workspace: wid,
-		VendorID:  vid,
-		Token:     token,
-		ExpiresAt: expiresAt,
-		Provider:  "timedoctor",
-	}
-	return connection
-}

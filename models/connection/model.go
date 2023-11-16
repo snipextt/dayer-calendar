@@ -7,7 +7,8 @@ import (
 )
 
 type WorkspaceMeta struct {
-	TimeDoctorCompanyID string `bson:"company" json:"timeDoctorCompanyId"`
+	TimeDoctorCompanyID string `bson:"timeDoctorCompanyId" json:"timeDoctorCompanyId"`
+  TimeDoctorParseScreencast bool `bson:"timeDoctorParseScreencast" json:"timeDoctorParseScreencasr"`
 }
 
 type Model struct {
@@ -22,7 +23,7 @@ type Model struct {
 }
 
 func collection() *mongo.Collection {
-	return storage.GetMongoInstance().Collection("connections")
+	return storage.Primary().Collection("connections")
 }
 
 func (c *Model) Save() error {

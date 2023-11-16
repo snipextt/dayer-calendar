@@ -9,7 +9,7 @@ import (
 )
 
 func (w *Workspace) collection() *mongo.Collection {
-	return storage.GetMongoInstance().Collection("workspaces")
+	return storage.Primary().Collection("workspaces")
 }
 
 func (w *Workspace) Save(update ...interface{}) (err error) {
@@ -43,11 +43,11 @@ func (w *Workspace) Create() (err error) {
 
 // Workspace member methods
 
-func (w *WorkspaceMember) collection() *mongo.Collection {
-	return storage.GetMongoInstance().Collection("workspaceMembers")
+func (w *Member) collection() *mongo.Collection {
+	return storage.Primary().Collection("workspaceMembers")
 }
 
-func (w *WorkspaceMember) Save(update ...interface{}) (err error) {
+func (w *Member) Save(update ...interface{}) (err error) {
 	if w.Id.IsZero() {
 		err = w.Create()
 	} else {
@@ -56,7 +56,7 @@ func (w *WorkspaceMember) Save(update ...interface{}) (err error) {
 	return
 }
 
-func (w *WorkspaceMember) Update(update interface{}) (err error) {
+func (w *Member) Update(update interface{}) (err error) {
 	ctx, cancel := utils.NewContext()
 	defer cancel()
 	_, err = w.collection().UpdateByID(ctx, w.Id, update)
@@ -64,7 +64,7 @@ func (w *WorkspaceMember) Update(update interface{}) (err error) {
 	return
 }
 
-func (w *WorkspaceMember) Create() (err error) {
+func (w *Member) Create() (err error) {
 	ctx, cancel := utils.NewContext()
 	defer cancel()
 
@@ -78,11 +78,11 @@ func (w *WorkspaceMember) Create() (err error) {
 
 // Workspace Team methods
 
-func (t *WorkspaceTeam) collection() *mongo.Collection {
-	return storage.GetMongoInstance().Collection("workspaceTeams")
+func (t *Team) collection() *mongo.Collection {
+	return storage.Primary().Collection("workspaceTeams")
 }
 
-func (t *WorkspaceTeam) Save(update ...any) (err error) {
+func (t *Team) Save(update ...any) (err error) {
 	if t.Id.IsZero() {
 		err = t.Create()
 	} else {
@@ -91,7 +91,7 @@ func (t *WorkspaceTeam) Save(update ...any) (err error) {
 	return
 }
 
-func (t *WorkspaceTeam) Create() (err error) {
+func (t *Team) Create() (err error) {
 	ctx, cancel := utils.NewContext()
 	defer cancel()
 
@@ -104,7 +104,7 @@ func (t *WorkspaceTeam) Create() (err error) {
 	return
 }
 
-func (t *WorkspaceTeam) Update(update any) (err error) {
+func (t *Team) Update(update any) (err error) {
 	ctx, cancel := utils.NewContext()
 	defer cancel()
 

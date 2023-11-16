@@ -9,7 +9,7 @@ import (
 )
 
 func collection() *mongo.Collection {
-	return storage.GetMongoInstance().Collection("extensions")
+	return storage.Primary().Collection("extensions")
 }
 
 func PaginatedExtensions(page int64, limit int64) (extensions Extensions, err error) {

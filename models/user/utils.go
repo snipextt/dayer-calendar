@@ -18,7 +18,7 @@ func New(cid string) (user Model) {
 }
 
 func collection() *mongo.Collection {
-	return storage.GetMongoInstance().Collection("users")
+	return storage.Primary().Collection("users")
 }
 
 func FindById(id string) (user Model, err error) {

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/snipextt/dayer/storage"
+	"github.com/snipextt/dayer/utils"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -30,6 +31,7 @@ type TimeDoctorImageData struct {
 }
 
 type TimeDoctorReportForAnalysis struct {
+  Id          primitive.ObjectID    `json:"_id" bson:"_id,omitempty"`
 	Images      []TimeDoctorImageData `json:"images" bson:"images"`
 	Activities  []TimeDoctorActivity  `json:"activities" bson:"activities"`
 	Tasks       []string              `json:"tasks" bson:"tasks"`
@@ -43,6 +45,17 @@ func (t *TimeDoctorReportForAnalysis) ToBytes() ([]byte, error) {
 	return json.Marshal(t)
 }
 
+func (t *TimeDoctorReportForAnalysis) collection() *mongo.Collection {
+  return storage.Primary().Collection("timedoctorReportsForAnalysis")
+}
+
+func (t *TimeDoctorReportForAnalysis) Save() error {
+  ctx, cancel := utils.NewContext()
+  defer cancel()
+  _, err := t.collection().InsertOne(ctx, t)
+  return err
+}
+
 type TimeDoctorReport struct {
 	Id                primitive.ObjectID `json:"_id" bson:"_id"`
 	ProductiveTime    float64            `json:"productiveTime" bson:"productiveTime"`
@@ -51,7 +64,7 @@ type TimeDoctorReport struct {
   Summary           string             `json:"summary" bson:"summary"`
 	ProductiveApps    []string           `json:"productiveApps" bson:"productiveApps"`
 	Images            []struct {
-		Date    string `json:"date" bson:"date"`
+		Date    time.Time `json:"date" bson:"date"`
 		Summary string `json:"summary" bson:"summary"`
 	}
   CreatedAt         time.Time          `json:"createdAt" bson:"createdAt"`

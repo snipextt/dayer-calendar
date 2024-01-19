@@ -3,7 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"sync"
-  "time"
+	"time"
 
 	"github.com/clerkinc/clerk-sdk-go/clerk"
 	"github.com/gofiber/fiber/v2"
@@ -216,7 +216,7 @@ func CreateTeam(c *fiber.Ctx) error {
 	return success(c, nil, team)
 }
 
-func Insights(c *fiber.Ctx) error {
+func Reports(c *fiber.Ctx) error {
   defer catchInternalServerError(c)
 
   wid, err := getWorkspaceId(c)
@@ -225,13 +225,14 @@ func Insights(c *fiber.Ctx) error {
   }
   startDate, err := time.Parse(time.RFC3339, c.Query("startDate"))
   endDate, err := time.Parse(time.RFC3339, c.Query("endDate"))
+  team, err := primitive.ObjectIDFromHex(c.Query("team"))
 
   connections, err := connection.ForWorkspace(wid)
   utils.CheckError(err)
 
   for _, conn := range connections {
     if conn.Provider == "timedoctor" {
-      res, err := timedoctor_utils.ReportForWorkspace(conn.Workspace.(primitive.ObjectID), startDate, endDate)
+      res, err := timedoctor_utils.ReportForWorkspace(conn.Workspace.(primitive.ObjectID), team, startDate, endDate)
       utils.CheckError(err)
       return success(c, nil, res)
     }

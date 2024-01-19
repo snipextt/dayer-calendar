@@ -11,18 +11,21 @@ import (
 	"github.com/snipextt/dayer/models/workspace"
 	"github.com/snipextt/dayer/storage"
 	"github.com/snipextt/dayer/utils"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func pushToKafka(report models.TimeDoctorReportForAnalysis) {
+func pushTask(report models.TimeDoctorReportForAnalysis) {
 	ctx, cancel := utils.NewContext()
 	defer cancel()
 	defer catchError()
 	reportBytes, err := report.ToBytes()
-	utils.CheckError(err)
-	err = storage.KafkaWriter().WriteMessages(ctx, kafka.Message{
+  utils.CheckError(err)
+  err = storage.KafkaWriter().WriteMessages(ctx, kafka.Message{
 		Value: reportBytes,
 	})
+  utils.CheckError(err)
+  err = report.Save()
 	utils.CheckError(err)
 }
 
@@ -69,7 +72,12 @@ func generateTimedoctorReport(connection connection.Model, user workspace.Member
 
 	report.MemberId = user.Id
 	report.WorkspaceId = connection.Workspace.(primitive.ObjectID)
-  report.Teams = user.Teams.([]primitive.ObjectID)
+  var teams []primitive.ObjectID
+  for _, team := range user.Teams.(bson.A) {
+    teams = append(teams, team.(primitive.ObjectID))
+  }
+  report.Teams = teams
+  report.CreatedAt = time.Now()
 
-	pushToKafka(report)
+	pushTask(report)
 }

@@ -12,14 +12,14 @@ import (
 )
 
 func collection() *mongo.Collection {
-  return storage.Primary().Collection("TimeDoctorReports")
+  return storage.Primary().Collection("timedoctorReports")
 }
 
-func ReportForWorkspace(wid primitive.ObjectID, startDate time.Time, endDate time.Time) (reports []models.TimeDoctorReport, err error) {
+func ReportForWorkspace(wid, team primitive.ObjectID, startDate, endDate time.Time) (reports []models.TimeDoctorReport, err error) {
   ctx, cancel := utils.NewContext()
   defer cancel()
 
-  res, err := collection().Find(ctx, bson.M{"workspace": wid, "date": bson.M{"$gte": startDate, "$lte": endDate}})
+  res, err := collection().Find(ctx, bson.M{"workspace": wid, "createdAt": bson.M{"$gte": primitive.NewDateTimeFromTime(startDate), "$lt": primitive.NewDateTimeFromTime(endDate)}, "teams": team })
   if err != nil {
     return
   }
